@@ -1,0 +1,71 @@
+experiment: EXP-007
+hypothesis: >
+  Three contrasts have now shown a single-feature threshold beating both multivariate
+  models. This asks which features actually carry a behavioural deviation (SHAP over
+  XGBoost), and whether the ORDER of gestures carries signal that window summary statistics
+  discard (GRU vs XGBoost on identical windows).
+
+feature_version: features-v0.1
+seed: 42
+
+# Both models see the same windows of consecutive gestures, so the comparison isolates
+# sequence structure rather than differences in preprocessing.
+#   XGBoost gets per-window summary statistics (mean, std) of each feature.
+#   GRU gets the raw window x feature sequence.
+window:
+  size: 16
+  stride: 8            # overlapping windows, but never spanning a session boundary
+  min_per_class: 20    # per subject, else the subject is dropped from that contrast
+
+contrasts:
+  hmog_posture:
+    normal:  {path: data/processed/hmog_gesture-features_features-v0.1.parquet, posture: sit}
+    changed: {path: data/processed/hmog_gesture-features_features-v0.1.parquet, posture: walk}
+  hmog_task:
+    normal:  {path: data/processed/hmog_gesture-features_features-v0.1.parquet}
+    changed: {path: data/processed/map/hmog_gesture-features_features-v0.1.parquet}
+  feta_task:
+    normal:  {path: data/processed/feta_gesture-features_features-v0.1.parquet}
+    changed: {path: data/processed/feta_gesture-features-swipe_features-v0.1.parquet}
+
+# FETA pitfall P3 and SPEC.md: never split within a subject.
+cv:
+  folds: 5
+  scheme: subject_wise
+
+xgboost:
+  n_estimators: 300
+  max_depth: 4
+  learning_rate: 0.08
+  subsample: 0.8
+  colsample_bytree: 0.8
+  reg_lambda: 1.0
+  early_stopping_rounds: 30
+
+gru:
+  hidden: 48
+  layers: 1
+  dropout: 0.2
+  lr: 0.002
+  epochs: 25
+  batch_size: 128
+  patience: 5
+
+# phone_orientation is constant in FETA; pressure is constant in HMOG. Neither may enter a
+# model that is compared across datasets.
+exclude:
+  - subject
+  - session
+  - ActivityID
+  - ScrollID
+  - t_start
+  - t_end
+  - feature_version
+  - posture
+  - phone_orientation
+  # Direction features encode the TASK almost deterministically (FETA scroll is 99.2%
+  # vertical, swipe 1.7%), so a classifier reaches PR-AUC 1.000 by reading gesture
+  # direction rather than behaviour. Excluded as leakage.
+  - direction_flag
+  - average_direction
+  - direction_end_to_end
