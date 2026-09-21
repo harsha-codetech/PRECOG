@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">PRECOG</string>
+    <string name="service_label">PRECOG scroll pattern reader</string>
+    <string name="service_description">Reads the timing of your scroll gestures in the apps you choose, so PRECOG can learn your normal rhythm. It never reads screen content, text, or what you tap. Everything stays encrypted on this phone.</string>
+</resources>

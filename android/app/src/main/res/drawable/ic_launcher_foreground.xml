@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- tolerance band -->
+    <path android:fillColor="#1F3B73" android:fillAlpha="0.55"
+        android:pathData="M30,45 H78 V63 H30 Z" />
+    <!-- centre line: 'your usual' -->
+    <path android:fillColor="#4A7C6F" android:pathData="M30,53 H78 V55 H30 Z" />
+    <!-- current reading, deviating above the band -->
+    <path android:fillColor="#B5893E" android:pathData="M64,36 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+    <path android:fillColor="#B5893E" android:fillAlpha="0.7" android:pathData="M63,41 H65 V45 H63 Z" />
+</vector>
