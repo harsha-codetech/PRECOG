@@ -1,0 +1,82 @@
+% PRECOG --- core citations: the datasets, the feature set, the evaluation rules, the prior art.
+% Verified against the Crossref API on 2026-09-21, except FETA, whose details are taken from the
+% paper's own first page (`references/papers/Georgiev2023_FETA.pdf`) because the arXiv API was
+% unreachable at the time of writing. FETA's venue is marked for confirmation.
+
+% ---------------------------------------------------------------------------
+% The feature set the whole area is built on.
+% ---------------------------------------------------------------------------
+@article{Frank2013_Touchalytics,
+  author          = {Mario Frank and Ralf Biedert and Eugene Ma and Ivan Martinovic and Dawn Song},
+  title           = {{Touchalytics: On the Applicability of Touchscreen Input as a Behavioral
+                     Biometric for Continuous Authentication}},
+  journal         = {IEEE Transactions on Information Forensics and Security},
+  volume          = {8},
+  number          = {1},
+  pages           = {136--148},
+  year            = {2013},
+  doi             = {10.1109/TIFS.2012.2225048},
+}
+
+% ---------------------------------------------------------------------------
+% Primary dataset: 39,556 gestures from 99 subjects after extraction.
+% ---------------------------------------------------------------------------
+@article{Sitova2016_HMOG,
+  author          = {Zdenka Sitova and Jaroslav Sedenka and Qing Yang and Ge Peng and Gang Zhou and
+                     Paolo Gasti and Kiran S. Balagani},
+  title           = {{HMOG: New Behavioral Biometric Features for Continuous Authentication of
+                     Smartphone Users}},
+  journal         = {IEEE Transactions on Information Forensics and Security},
+  volume          = {11},
+  number          = {5},
+  pages           = {877--892},
+  year            = {2016},
+  doi             = {10.1109/TIFS.2015.2506542},
+}
+
+% ---------------------------------------------------------------------------
+% Replication dataset. 515 users, 31 days, 1,194,451 strokes.
+% ---------------------------------------------------------------------------
+@article{Georgiev2023_FETA,
+  author          = {Martin Georgiev and Simon Eberz and Henry Turner and Giulio Lovisotto and
+                     Ivan Martinovic},
+  title           = {{FETA: Fair Evaluation of Touch-based Authentication}},
+  year            = {2023},
+  eprint          = {2201.10606},
+  archivePrefix   = {arXiv},
+  note            = {[PLACEHOLDER --- confirm publication venue. The arXiv API was unreachable on
+                     2026-09-21; details above are from the paper's own title page. Check whether a
+                     journal or conference version exists before submission.]},
+}
+
+% ---------------------------------------------------------------------------
+% The source of the subject-wise-CV requirement. Read before designing any evaluation here:
+% it reviews 30 touch-dynamics papers and finds every one overlooks at least one pitfall.
+% NOTE 2026-09-21: this is ASIACCS 2022, not an Oxford ORA report as previously recorded.
+% ---------------------------------------------------------------------------
+@inproceedings{Georgiev2022_EvalPitfalls,
+  author          = {Martin Georgiev and Simon Eberz and Henry Turner and Giulio Lovisotto and
+                     Ivan Martinovic},
+  title           = {{Common Evaluation Pitfalls in Touch-Based Authentication Systems}},
+  booktitle       = {Proceedings of the 2022 ACM on Asia Conference on Computer and Communications
+                     Security (ASIA CCS)},
+  pages           = {1049--1063},
+  year            = {2022},
+  doi             = {10.1145/3488932.3517388},
+}
+
+% ---------------------------------------------------------------------------
+% The dominant prior art on the intervention side. Coarse features only --- no kinematics.
+% ---------------------------------------------------------------------------
+@inproceedings{Orzikulova2024_Time2Stop,
+  author          = {Adiba Orzikulova and Han Xiao and Zhipeng Li and Yukang Yan and Yuntao Wang and
+                     Yuanchun Shi and Marzyeh Ghassemi and Sung-Ju Lee and Anind K. Dey and
+                     Xuhai Xu},
+  title           = {{Time2Stop: Adaptive and Explainable Human-AI Loop for Smartphone Overuse
+                     Intervention}},
+  booktitle       = {Proceedings of the CHI Conference on Human Factors in Computing Systems},
+  pages           = {1--20},
+  year            = {2024},
+  doi             = {10.1145/3613904.3642747},
+  note            = {Preprint: arXiv:2403.05584},
+}
