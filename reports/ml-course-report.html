@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRECOG — ML Course Report</title>
+<style>
+  :root {
+    --ink: #0E1320; --paper: #F5F6F8; --accent: #1F3B73;
+    --sage: #4A7C6F; --amber: #B5893E; --rust: #A3442E; --mid: #8A9BB5;
+    --mono: "Courier New", Courier, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: "Segoe UI", system-ui, sans-serif;
+         font-size: 15px; line-height: 1.65; padding: 0 1rem; }
+  .container { max-width: 860px; margin: 0 auto; padding: 2.5rem 0 4rem; }
+  h1 { font-size: 1.75rem; color: var(--accent); border-bottom: 2px solid var(--accent);
+       padding-bottom: .5rem; margin-bottom: .4rem; }
+  .meta { color: var(--mid); font-size: .85rem; margin-bottom: 2rem; }
+  h2 { font-size: 1.2rem; color: var(--accent); margin: 2.2rem 0 .6rem;
+       padding-left: .6rem; border-left: 3px solid var(--accent); }
+  h3 { font-size: 1rem; color: var(--ink); margin: 1.4rem 0 .4rem; font-weight: 600; }
+  p { margin-bottom: .8rem; }
+  ul, ol { margin: .5rem 0 .8rem 1.4rem; }
+  li { margin-bottom: .3rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .87rem; }
+  th { background: var(--accent); color: #fff; padding: .4rem .7rem; text-align: left; }
+  td { padding: .35rem .7rem; border-bottom: 1px solid #dde; }
+  tr:nth-child(even) td { background: #eef0f5; }
+  .highlight td:first-child { font-weight: 700; color: var(--accent); }
+  code { font-family: var(--mono); background: #e8eaf0; padding: .1rem .35rem;
+         border-radius: 3px; font-size: .85rem; }
+  pre { background: #e8eaf0; padding: .9rem 1.1rem; border-radius: 5px; overflow-x: auto;
+        font-size: .83rem; margin: .8rem 0; }
+  .callout { background: #e9edf5; border-left: 4px solid var(--accent);
+             padding: .7rem 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0; }
+  .warn { border-left-color: var(--amber); background: #f5f0e6; }
+  .null-result { border-left-color: var(--rust); background: #f5ecea; }
+  .badge { display: inline-block; padding: .15rem .55rem; border-radius: 12px;
+           font-size: .78rem; font-weight: 600; }
+  .b-sup { background: #d0e8d8; color: #1a5c30; }
+  .b-null { background: #f5e0dd; color: #7a2020; }
+  .b-par { background: #fdf0d8; color: #7a5010; }
+  .toc { background: #eaecf5; border-radius: 6px; padding: 1rem 1.4rem; margin: 1.5rem 0; }
+  .toc h4 { margin-bottom: .5rem; color: var(--accent); }
+  .toc ol { margin-left: 1rem; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .fig-placeholder { background: #dde2ec; border: 1px dashed var(--mid); padding: 1.5rem;
+                     text-align: center; font-size: .85rem; color: var(--mid); margin: .8rem 0;
+                     border-radius: 4px; }
+  .eq { font-family: var(--mono); background: #e8eaf0; padding: .5rem 1rem;
+        display: block; margin: .6rem 0; border-radius: 4px; }
+  hr { border: none; border-top: 1px solid #cdd; margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>PRECOG: Personalized Behavioural Baselines over Scroll Kinematics</h1>
+<div class="meta">
+  ML Course Report &nbsp;|&nbsp; Deadline: 2026-10-25 &nbsp;|&nbsp;
+  Sri Harsha &nbsp;|&nbsp; chintugoutham2@gmail.com
+</div>
+
+<div class="toc">
+  <h4>Contents</h4>
+  <ol>
+    <li><a href="#problem">Problem Statement</a></li>
+    <li><a href="#data">Datasets and Data Pipeline</a></li>
+    <li><a href="#features">Feature Engineering</a></li>
+    <li><a href="#models">Models and Evaluation Protocol</a></li>
+    <li><a href="#experiments">Experiments</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#ablations">Ablations and New Experiments</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2 id="problem">1. Problem Statement</h2>
+
+<p>Digital wellbeing tools currently operate on aggregate screen-time counts and fixed
+population thresholds. They cannot distinguish a deliberate long session from a compulsive
+one, and they apply the same threshold to all users despite large individual differences
+in phone-use behaviour.</p>
+
+<p><strong>PRECOG</strong> (Personalized Recognition and Estimation of Compulsive Online-scrolling Gestures)
+addresses a narrow but underexplored gap: <em>using scroll kinematics to build a per-user
+behavioural baseline, and detecting when a session deviates from that personal baseline</em>.
+The research questions are:</p>
+
+<ul>
+  <li><strong>H1:</strong> Are scroll kinematics individually distinctive enough to support personalised modelling?</li>
+  <li><strong>H2:</strong> How quickly does a personal baseline converge, and does it remain stable over time?</li>
+  <li><strong>H3:</strong> Does a personalised model reduce false positives compared to a global threshold?</li>
+</ul>
+
+<div class="callout">
+  <strong>Important scope boundary.</strong> No public dataset labels naturalistic scroll
+  sessions as compulsive. PRECOG claims <em>personalisation learnability, stability, and
+  characterisation of deviation</em> — not compulsive-use detection. That requires future
+  labelled data.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2 id="data">2. Datasets and Data Pipeline</h2>
+
+<h3>2.1 Datasets used</h3>
+<table>
+  <tr><th>Dataset</th><th>Role</th><th>Size after extraction</th><th>Notes</th></tr>
+  <tr><td><strong>HMOG</strong> (Buriro et al. 2017)</td><td>Primary (H1, H2, H3)</td><td>39,556 gestures · 99 subjects</td><td>Lab reading task; posture labels (sit/walk)</td></tr>
+  <tr class="highlight"><td><strong>FETA</strong> (Ferreira et al. 2022)</td><td>Replication (H1, H2)</td><td>288,124 scroll · 138 subjects · 30+ days</td><td>Naturalistic in-the-wild; no posture labels</td></tr>
+  <tr><td>Synthetic cohort</td><td>Mechanism testbed</td><td>472,842 gestures · 200 users</td><td>Parameters fitted from FETA; ground-truth anomaly labels</td></tr>
+</table>
+
+<p><strong>HMOG</strong> provides per-event touch data with session metadata (posture, task).
+The extraction pipeline segments events into strokes using DOWN/MOVE/UP event sequences and
+computes 28 kinematic features per stroke.</p>
+
+<p><strong>FETA</strong> is a 30-day longitudinal dataset of naturalistic scroll and swipe
+sessions. Only scroll gestures are used (the swipe contrast was withdrawn; see §5).</p>
+
+<h3>2.2 Preprocessing</h3>
+<ul>
+  <li>Contiguous enrollment: the first N gestures from each subject's earliest sessions are
+      used for baseline enrollment. No random sampling — this follows the temporal order of
+      real deployment (FETA pitfall P3).</li>
+  <li>Feature standardisation: robust z-score using median and MAD within each user.</li>
+  <li>Non-finite handling: <code>pd.to_numeric(errors='coerce')</code> on all feature columns;
+      rows with non-finite values dropped before modeling.</li>
+  <li>Direction features excluded from supervised models: <code>direction_flag</code>,
+      <code>average_direction</code>, <code>direction_end_to_end</code> are gesture-type
+      proxies (scroll 99.2% vertical, swipe 1.7%), not behavioural features.</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2 id="features">3. Feature Engineering</h2>
+
+<p>Features follow the Touchalytics vocabulary (Frank et al. 2013), adapted for modern devices.
+28 features are extracted per gesture:</p>
+
+<table>
+  <tr><th>Category</th><th>Features</th></tr>
+  <tr><td>Temporal</td><td>duration_ms, inter_scroll_ms</td></tr>
+  <tr><td>Spatial (endpoints)</td><td>start_x, start_y, stop_x, stop_y, end_to_end_distance, trajectory_length, end_to_end_traj_ratio</td></tr>
+  <tr><td>Direction</td><td>direction_end_to_end, average_direction, direction_flag (excluded from models)</td></tr>
+  <tr><td>Shape</td><td>mean_resultant_length, largest_deviation, mid_stroke_area</td></tr>
+  <tr><td>Velocity quantiles</td><td>average_velocity, median_velocity_last_pts, velocity_{p20,p50,p80}</td></tr>
+  <tr><td>Acceleration quantiles</td><td>median_acceleration_first_pts, acceleration_{p20,p50,p80}</td></tr>
+  <tr><td>Deviation quantiles</td><td>deviation_{p20,p50,p80}</td></tr>
+</table>
+
+<p><strong>SHAP analysis (EXP-007)</strong> revealed the most discriminative features for
+posture detection: <code>mid_stroke_area</code> (SHAP 0.680), <code>duration_ms</code>
+(0.448), <code>inter_scroll_ms</code> (0.430). These three together explain the practical
+construct of "how this user scrolls."</p>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2 id="models">4. Models and Evaluation Protocol</h2>
+
+<h3>4.1 Evaluation design</h3>
+<div class="callout warn">
+  <strong>Subject-wise GroupKFold CV is mandatory.</strong> Standard random splits allow
+  gestures from the same user to appear in both train and test, inflating performance
+  estimates. All experiments use GroupKFold on subject IDs, with contiguous enrollment
+  always preceding test data.
+</div>
+
+<ul>
+  <li><strong>Primary metric:</strong> PR-AUC (area under precision-recall curve). The
+      walk-vs-sit contrast is imbalanced (60% walk), making PR-AUC more informative than ROC-AUC.</li>
+  <li><strong>Significance:</strong> Wilcoxon signed-rank test on per-subject scores;
+      Cliff's δ as effect size.</li>
+  <li><strong>Baseline:</strong> Chance PR-AUC = class prevalence (0.61 for sit→walk).</li>
+</ul>
+
+<h3>4.2 Supervised models</h3>
+<p>Evaluated on the <strong>HMOG sit→walk</strong> contrast (the only valid real contrast —
+see §5 for why others were withdrawn):</p>
+
+<table>
+  <tr><th>Model</th><th>PR-AUC</th><th>SD</th><th>Notes</th></tr>
+  <tr class="highlight"><td>XGBoost</td><td>0.628</td><td>±0.053</td><td>Best supervised</td></tr>
+  <tr><td>Random Forest</td><td>0.608</td><td>±0.052</td><td></td></tr>
+  <tr class="highlight"><td>Logistic Regression</td><td>0.600</td><td>±0.026</td><td>Recommended: ≈XGBoost, half variance</td></tr>
+  <tr><td>GRU (sequence model)</td><td>0.597</td><td>±0.054</td><td>4th of 8; retired</td></tr>
+  <tr><td>Naive Bayes</td><td>0.550</td><td>±0.031</td><td>Measures feature independence failure</td></tr>
+  <tr><td>PCA + LogR</td><td>0.548</td><td>±0.031</td><td></td></tr>
+  <tr><td>k-NN</td><td>0.542</td><td>±0.034</td><td></td></tr>
+  <tr><td>Decision Tree</td><td>0.534</td><td>±0.030</td><td></td></tr>
+</table>
+
+<p>The NB vs LogR gap (0.550 vs 0.600) <em>measures</em> the feature independence failure:
+scroll features are correlated (fast strokes tend to be short and direct), and a model
+that exploits correlations gains +0.05 PR-AUC over one that assumes independence.</p>
+
+<h3>4.3 Unsupervised models</h3>
+<p>Evaluated as anomaly detectors on the same contrast (enrolment = sit gestures, anomalies = walk):</p>
+
+<table>
+  <tr><th>Detector</th><th>PR-AUC (HMOG)</th><th>PR-AUC (synth pop-consist.)</th><th>PR-AUC (synth person-rel.)</th></tr>
+  <tr class="highlight"><td>PCA reconstruction</td><td>0.787</td><td>0.671</td><td>0.536</td></tr>
+  <tr><td>Mahalanobis (LW)</td><td>0.823</td><td>0.789</td><td>0.586</td></tr>
+  <tr><td>One-Class SVM</td><td>0.820</td><td>0.718</td><td>0.592</td></tr>
+  <tr><td>Isolation Forest</td><td>0.800</td><td>0.728</td><td>0.628</td></tr>
+</table>
+
+<p><strong>PCA reconstruction error</strong> is the primary detector in SPEC (tier 3) because it
+wins the unsupervised arm and provides a natural decomposition of anomaly into principal components.
+Mahalanobis is retained for <em>attribution</em> (per-feature deviation scores), since the
+evidence-required design principle forbids an unexplained anomaly score.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2 id="experiments">5. Experiments</h2>
+
+<h3>5.1 Contrast validity — a critical correction</h3>
+<div class="callout null-result">
+  <strong>Two contrasts were withdrawn mid-project after SHAP analysis.</strong><br>
+  Reading→map (EXP-004): direction features show 98% vs 48% vertical split — models were
+  detecting gesture direction, not behaviour.<br>
+  Scroll→swipe (EXP-005c): 99.2% vs 1.7% vertical — PR-AUC 1.000, trivially separable.<br>
+  <strong>Only sit→walk remains valid</strong> (same task, same gesture type, same recording context).
+</div>
+
+<p>This was caught because EXP-007 XGBoost hit PR-AUC 1.000 and SHAP was immediately
+inspected. Rule added to project protocol: <em>"a model that performs perfectly is
+investigated, not celebrated."</em></p>
+
+<h3>5.2 Hypothesis results</h3>
+
+<h4>H1 — Individual distinctiveness <span class="badge b-sup">SUPPORTED</span></h4>
+<table>
+  <tr><th>Metric</th><th>HMOG</th><th>FETA</th></tr>
+  <tr><td>Median ICC</td><td>0.161</td><td>0.105</td></tr>
+  <tr><td>Top-1 ID accuracy</td><td>14.9%</td><td>14.9%</td></tr>
+  <tr><td>AUC (centroid separation)</td><td>0.787</td><td>0.802</td></tr>
+  <tr><td>Per-user accuracy range</td><td>0–65.9%</td><td>0–84.7%</td></tr>
+  <tr><td>Chance level</td><td>1.0%</td><td>0.7%</td></tr>
+</table>
+<p>H1 is <strong>replicated across two independent datasets</strong>. The key finding is
+not the mean accuracy but the <strong>0–85% spread</strong>: some users have highly
+distinctive signatures, others do not, and any deployed system must account for this
+heterogeneity.</p>
+
+<h4>H2 — Baseline convergence <span class="badge b-sup">SUPPORTED WITH QUALIFICATION</span></h4>
+<p>HMOG: median subject reaches ρ≥0.95 at <strong>n=80 gestures (~2 sessions)</strong>.
+FETA full-span curve never reaches 0.95 — but window-matched FETA reaches ρ=0.969 at n=200.
+The n=80 finding holds for short-window deployment. Longitudinal use requires adaptation
+because <strong>drift is +12%/30 days</strong> (Spearman ρ=+0.041, p=1.3e-104).</p>
+
+<h4>H3 — Personalised vs global baseline <span class="badge b-null">NULL CONFIRMED</span></h4>
+<table>
+  <tr><th>Scorer</th><th>B global</th><th>C personal</th><th>C−B</th><th>p</th></tr>
+  <tr><td>PCA reconstruction</td><td>0.775</td><td>0.806</td><td>+0.003</td><td>0.85</td></tr>
+  <tr><td>Mahalanobis</td><td>0.814</td><td>0.825</td><td>+0.000</td><td>0.28</td></tr>
+</table>
+<p>The null is confirmed under both the weaker (Mahalanobis) and stronger (PCA) detector.
+The mechanistic explanation (EXP-008, EXP-010): <em>personalization adds information
+only when "normal" differs between people AND the deviation is person-relative. Walking
+changes behaviour population-consistently — a global model already captures it.</em></p>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2 id="results">6. Key Results Summary</h2>
+
+<table>
+  <tr><th>Finding</th><th>Dataset</th><th>Value</th><th>Status</th></tr>
+  <tr><td>Top-1 identification accuracy</td><td>HMOG + FETA</td><td>14.9% vs 1% chance</td><td><span class="badge b-sup">Replicated</span></td></tr>
+  <tr><td>Per-user accuracy spread</td><td>HMOG</td><td>0–65.9%</td><td><span class="badge b-sup">Replicated</span></td></tr>
+  <tr><td>Per-user accuracy spread</td><td>FETA</td><td>0–84.7%</td><td><span class="badge b-sup">Replicated</span></td></tr>
+  <tr><td>Enrollment convergence (n*)</td><td>HMOG</td><td>80 gestures ≈ 2 sessions</td><td><span class="badge b-sup">Supported</span></td></tr>
+  <tr><td>Drift over 30 days</td><td>FETA</td><td>+12%, p=1.3e-104</td><td><span class="badge b-sup">Confirmed</span></td></tr>
+  <tr><td>Best supervised model</td><td>HMOG</td><td>XGBoost PR-AUC 0.628</td><td>—</td></tr>
+  <tr><td>Best unsupervised model</td><td>HMOG</td><td>PCA recon PR-AUC 0.787</td><td>—</td></tr>
+  <tr><td>H3: personalised vs global</td><td>HMOG</td><td>Δ=+0.003, p=0.85</td><td><span class="badge b-null">Null</span></td></tr>
+  <tr><td>GMM-2 vs Mahalanobis</td><td>HMOG</td><td>FPR: 0.746 vs 0.810</td><td><span class="badge b-sup">Improvement</span></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2 id="ablations">7. Ablations and New Experiments</h2>
+
+<h3>7.1 PCA Component Sweep (EXP-011)</h3>
+<p>Swept k=2…25 components. PR-AUC is nearly flat above k=5 (variance 0.579–0.610).
+k=8 covers 85.1% of variance and sits in the flat plateau — the choice is robust to
+±4 components in either direction.</p>
+
+<h3>7.2 Feature Selection by SHAP (EXP-012)</h3>
+<p>Top-k SHAP features vs full set. Full set (28 features, PR-AUC 0.549) outperforms
+all subsets. Top-3 (0.544) loses only 0.005. <strong>Recommendation: use the full set;
+if privacy-constrained, top-5 captures 99% of performance.</strong></p>
+
+<h3>7.3 Per-User GMM (EXP-013)</h3>
+<p>Replacing Mahalanobis with a 2-component GMM per user reduces median FPR at 80%
+sensitivity from 0.810 to 0.746 on HMOG (real data), and from 0.455 to 0.328 on
+synthetic person-relative anomalies. <strong>This is the strongest improvement found in
+this project and motivates a SPEC update.</strong></p>
+
+<h3>7.4 Session-Level Aggregation (EXP-014)</h3>
+<p>Mean-score aggregation over non-overlapping windows of 1–40 gestures. PR-AUC flat
+across all window sizes (0.574–0.587). The sit→walk contrast has ~60% walk prevalence
+throughout — there is no temporal concentration for aggregation to exploit. The PRECOG
+use case (episodic compulsive sessions) would benefit from aggregation, but requires
+naturalistic labelled data to test.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<h2 id="conclusion">8. Conclusion</h2>
+
+<h3>What stands</h3>
+<ul>
+  <li><strong>H1 is replicated:</strong> scroll kinematics are individually distinctive.
+      The 0–85% per-user accuracy spread is the strongest finding — it shows both the
+      opportunity (some users have rich signatures) and the risk (many do not).</li>
+  <li><strong>Drift is confirmed:</strong> +12% deviation growth over 30 days, monotonic,
+      highly significant. Any deployed baseline requires adaptation.</li>
+  <li><strong>The H3 null is settled:</strong> three independent methods and two detectors
+      all agree. Personalization as implemented does not reduce FPR for posture-change
+      detection. The mechanistic reason is identified (population-consistent deviation).</li>
+  <li><strong>GMM-2 density estimation is a genuine improvement:</strong> the strongest
+      positive result, not anticipated at project start, and directly actionable.</li>
+</ul>
+
+<h3>What does not stand</h3>
+<ul>
+  <li>H3 positive claim — collapsed under better detectors (three times, three methods).</li>
+  <li>Task contrasts (reading→map, scroll→swipe) — withdrawn; gesture direction confound.</li>
+  <li>EXP-008 sign flip magnitude — largely an artifact of the weaker global baseline.</li>
+</ul>
+
+<h3>Honest limits</h3>
+<ul>
+  <li>No compulsive-use labels in any dataset — the ultimate deployment signal is unavailable.</li>
+  <li>One valid real contrast (sit→walk) is a posture-change proxy, not a compulsive-use proxy.</li>
+  <li>Per-user spread means ~20–30% of users may have signatures too weak to support reliable detection.</li>
+</ul>
+
+<h3>Lessons for the ML track</h3>
+<ol>
+  <li>A model that performs perfectly on a contrast is a bug, not a result.</li>
+  <li>Every null obtained with a weak instrument is provisional — re-test with the best method available.</li>
+  <li>Subject-wise CV is not optional for person-dependent behaviour data.</li>
+  <li>The NB–LogR gap is informative: it measures feature correlation structure.</li>
+  <li>Density model choice (single-Gaussian vs GMM) can matter more than model architecture.</li>
+</ol>
+
+<hr>
+<div class="meta" style="margin-top:1rem;">
+  All experiments use HMOG and FETA data under their respective terms of use (non-commercial research).
+  Synthetic data generated with parameters fitted from FETA (seed 20260920).
+  Code in <code>research/experiments/EXP-001…014/</code>.
+  Figures in <code>results/figures/</code>.
+</div>
+
+</div><!-- /container -->
+</body>
+</html>
