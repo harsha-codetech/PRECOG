@@ -1,0 +1,13 @@
+Type,Model,PR-AUC,SD,ROC-AUC
+Supervised,XGBoost,0.628,±0.053,0.655
+Supervised,RF,0.608,±0.052,0.625
+Supervised,LogR,0.600,±0.026,0.642
+Supervised,GRU (EXP-007),0.597,±0.054,0.641
+Supervised,NB,0.550,±0.031,0.574
+Supervised,PCA+LogR,0.548,±0.031,0.573
+Supervised,kNN,0.542,±0.034,0.569
+Supervised,DT,0.534,±0.030,0.563
+Unsupervised,IsolationForest,0.800,—,—
+Unsupervised,OneClassSVM,0.820,—,—
+Unsupervised,Mahalanobis,0.823,—,—
+Unsupervised,PCA_recon,0.787,—,—

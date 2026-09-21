@@ -1,0 +1,6 @@
+Dataset,Users,Sessions,Gestures,Granularity,Timestamps,Kinematics,Pressure,Naturalistic,Duration,Licence,Role in PRECOG
+HMOG (Buriro 2017),100,2400,"40,659 gestures","Per scroll event (MOVE samples)","✓ epoch ms","✓ full (velocity/accel/trajectory)","✗ constant 1.0 (Samsung 2014)","✗ lab reading task","8 sessions/user usable","ToU non-commercial","Primary — event timing + kinematics"
+FETA (Ferreira 2022),470,"6,009","421,973 strokes","Per stroke","✗ no timestamp column","✓ velocity/accel percentiles","✓ real values (iPhone)","✗ goal-directed task","90 users ≥ 30 days","ODC-PDDL (public domain)","Scale replication — kinematics only"
+Tappigraphy (Wilmer 2018),189,"—","—","Hourly bins","✓ coarse (hourly UTC)","✗","✗","✓ real-life naturalistic","147 users ≥ 30 days","Open","Circadian profile only — no per-event data"
+AITouch (2021),45,"—","—","Per event","✓","✓","✓","✗ tablet game","—","CC BY-NC 4.0","Dropped — tablet, wrong behaviour"
+Time2Stop (Okeke 2024),18 (field),"—","—","Session-level counts","✓","✗ coarse only","✗","✓ real-life","n=18 field study","Research","Closest prior art — no kinematics"
