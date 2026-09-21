@@ -1,0 +1,43 @@
+experiment: EXP-001
+hypothesis: >
+  H1 — scroll kinematics are individually distinctive: between-user variance in gesture
+  features exceeds within-user variance, and a person's gestures sit closer to their own
+  behavioural centroid than to anyone else's.
+
+input: data/processed/hmog_gesture-features_features-v0.1.parquet
+feature_version: features-v0.1
+seed: 42
+
+# FETA pitfall P3: training data must be contiguous in time, never randomly sampled.
+# Enrolment uses each subject's earliest reading sessions; evaluation uses the later ones.
+split:
+  mode: contiguous_sessions
+  enrol_sessions: 4        # of 7-8 reading sessions per subject
+  min_gestures_enrol: 30
+  min_gestures_test: 20
+
+# Heavy-tailed features are log-transformed before standardisation so a handful of
+# extreme gestures cannot dominate the variance decomposition.
+log_transform:
+  - duration_ms
+  - trajectory_length
+  - end_to_end_distance
+  - average_velocity
+  - velocity_p20
+  - velocity_p50
+  - velocity_p80
+  - largest_deviation
+  - deviation_p20
+  - deviation_p50
+  - deviation_p80
+  - inter_scroll_ms
+
+# Columns that identify rather than describe.
+exclude:
+  - subject
+  - session
+  - ActivityID
+  - ScrollID
+  - t_start
+  - t_end
+  - feature_version
