@@ -1,0 +1,66 @@
+PRECOG — Licensing
+==================
+
+Copyright (c) 2026 Sri Harsha
+
+This project is dual-licensed under either of
+
+  * Apache License, Version 2.0  — see LICENSE-APACHE
+      (http://www.apache.org/licenses/LICENSE-2.0)
+  * MIT License                  — see LICENSE-MIT
+      (http://opensource.org/licenses/MIT)
+
+at your option.
+
+You may choose either licence. You do not need permission to pick one, and you
+do not need to comply with both. Apache-2.0 carries an explicit patent grant and
+requires that changes be marked; MIT is shorter and permits more or less
+anything with attribution. This is the same arrangement the Rust project uses,
+and it exists so that people can take the code under whichever terms their own
+project already uses.
+
+Unless you state otherwise, any contribution you intentionally submit for
+inclusion in this work is dual-licensed on the same terms, with no additional
+conditions.
+
+
+WHAT THIS LICENCE DOES AND DOES NOT COVER
+-----------------------------------------
+
+COVERED — everything in this repository that is ours:
+
+  * the Android application under android/
+  * the research library, experiment code and scripts under research/ and scripts/
+  * the figures and tables under results/
+  * the written documents under docs/, paper/ and ux/
+
+NOT COVERED — third-party material, under its own separate terms:
+
+  * DATASETS. No dataset is distributed in this repository. HMOG, FETA,
+    Tappigraphy and the rest are obtained from their own sources using the DOIs
+    in docs/DATASETS.md, and each carries its own licence. In particular, the
+    HMOG terms of use permit NON-COMMERCIAL RESEARCH ONLY, FORBID
+    REDISTRIBUTION, and REQUIRE ATTRIBUTION in publications. A licence on this
+    code grants you nothing with respect to that data.
+
+  * PAPERS. The PDFs under references/papers/ are third-party publications and
+    are not distributed here.
+
+  * REFERENCE CODE. research/reference-code/ contains repositories written by
+    other researchers. Each has its own licence and its own upstream home, and
+    none of it is distributed here.
+
+
+A NOTE ON WHAT THIS SOFTWARE IS
+--------------------------------
+
+PRECOG is a research prototype. It describes how a person's scrolling compares
+to their own earlier scrolling.
+
+It is not a medical device, a diagnostic instrument, or a clinical tool. It does
+not detect addiction, compulsion, or any disorder, and none of the behavioural
+states it reports are clinical findings. No detection-accuracy figure is claimed
+for it, because none has been measured on the features it actually observes.
+
+Both licences below disclaim warranties and liability, and that disclaimer is
+meant seriously here: do not deploy this to make decisions about people.

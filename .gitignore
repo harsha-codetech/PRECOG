@@ -1,0 +1,56 @@
+# Datasets — never committed. All are re-downloadable from the DOIs in docs/DATASETS.md.
+data/raw/
+data/interim/
+data/processed/
+data/synthetic/
+data/_DUPLICATE*
+
+# Papers — third-party PDFs, not ours to redistribute (HMOG's ToU forbids it explicitly)
+references/papers/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+*.egg-info/
+.pytest_cache/
+
+# Experiment outputs — large; configs and READMEs under experiments/ ARE committed
+results/logs/
+research/experiments/*/outputs/
+
+# Android
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+*.apk
+*.aab
+
+# Signing material. *.keystore alone does NOT catch .jks --- both are needed.
+*.keystore
+*.jks
+android/keystore.properties
+
+# Secrets
+.env
+*.pem
+*.key
+*.p12
+
+# Third-party research code, cloned for reference. Not ours to redistribute; each
+# repository has its own licence and upstream home. See docs/RELATED_WORK.md.
+research/reference-code/
+
+# Extracted PDF text
+*.pdf.txt
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+*.swp
+~$*
