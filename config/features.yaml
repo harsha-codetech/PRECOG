@@ -1,0 +1,34 @@
+# Gesture-level feature extraction parameters.
+# Nothing here may be hard-coded in code (SPEC.md Principle 4).
+
+feature_version: features-v0.1
+
+# Percentiles used for the pairwise velocity / acceleration / deviation families.
+# These are the Touchalytics values (Frank et al. 2013) — changing them breaks
+# comparability with FETA's features.csv, which uses the same set.
+percentiles: [20, 50, 80]
+
+# Touchalytics computes "median velocity at last N points" and
+# "median acceleration at first M points".
+velocity_tail_points: 3
+acceleration_head_points: 5
+
+quality:
+  # A gesture needs at least this many MOVE samples to have a trajectory at all.
+  # Below 3, acceleration is undefined.
+  min_samples: 3
+  # Longer than this implies finger-down while the app was backgrounded, not a scroll.
+  max_duration_ms: 10000
+  # Guards division by zero on degenerate gestures.
+  min_duration_ms: 1
+
+excluded:
+  # Constant 1.0 across every HMOG file — the 2014 Samsung devices did not report
+  # pressure. Touchalytics ranks it 3rd by mutual information, so excluding it is a
+  # real loss, but including a constant would be worse: any cross-dataset comparison
+  # with FETA (which has genuine pressure) would be confounded.
+  - pressure
+  # Zero mutual information with user identity in Touchalytics Table 1.
+  - change_of_finger_orientation
+  # HMOG does not record finger orientation at all.
+  - mid_stroke_finger_orientation

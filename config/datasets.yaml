@@ -1,0 +1,52 @@
+# Dataset locations and extraction parameters.
+# Nothing here may be hard-coded elsewhere (SPEC.md Principle 4).
+
+hmog:
+  raw_dir: data/raw/hmog/public_dataset
+  out_dir: data/interim/hmog
+
+  # Files to pull out of each session. The three inertial streams
+  # (Accelerometer/Gyroscope/Magnetometer) are ~93% of the archive volume and
+  # are not used by PRECOG, so they are deliberately excluded.
+  extract:
+    - Activity.csv
+    - ScrollEvent.csv
+    - StrokeEvent.csv
+    - TouchEvent.csv
+
+  # TaskID → (task, posture). From public_dataset/data_description.pdf.
+  task_map:
+    1:  [reading, sit]
+    7:  [reading, sit]
+    13: [reading, sit]
+    19: [reading, sit]
+    2:  [reading, walk]
+    8:  [reading, walk]
+    14: [reading, walk]
+    20: [reading, walk]
+    3:  [writing, sit]
+    9:  [writing, sit]
+    15: [writing, sit]
+    21: [writing, sit]
+    4:  [writing, walk]
+    10: [writing, walk]
+    16: [writing, walk]
+    22: [writing, walk]
+    5:  [map, sit]
+    11: [map, sit]
+    17: [map, sit]
+    23: [map, sit]
+    6:  [map, walk]
+    12: [map, walk]
+    18: [map, walk]
+    24: [map, walk]
+
+  # Which tasks to extract interaction data for.
+  # Reading = scrolling through articles, the closest analogue to feed scrolling.
+  # Set to null to extract every task.
+  tasks: [reading]
+
+  # Data-quality rules, applied downstream — never to raw.
+  cleaning:
+    max_scroll_duration_ms: 10000   # longer implies finger-down with app backgrounded
+    min_samples_per_scroll: 3       # a gesture needs enough MOVE samples to be a trajectory

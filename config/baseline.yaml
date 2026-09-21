@@ -1,0 +1,40 @@
+baseline_version: baseline-v0.1
+
+# Context cells condition the baseline. More context means better-matched comparison but
+# fewer samples per cell, so every cell statistic is shrunk toward the user's global
+# statistic in proportion to its sample count (SPEC.md §5).
+context_keys: [posture]
+
+shrinkage:
+  # w = n_cell / (n_cell + k). k=10 means a cell with 10 samples is weighted half toward
+  # its own estimate, half toward the user's global one.
+  k: 10
+
+robust:
+  # MAD is floored before dividing so a degenerate cell cannot produce infinite z-scores.
+  mad_floor: 1.0e-6
+  # 0.6745 = Phi^-1(0.75); makes MAD a consistent estimator of sigma under normality.
+  consistency_constant: 0.6745
+
+mahalanobis:
+  # Full covariance over ~30 features needs far more samples than a single user provides.
+  # A reduced core plus Ledoit-Wolf shrinkage is estimable at realistic sample sizes.
+  min_samples: 30
+  core_features:
+    - duration_ms
+    - trajectory_length
+    - average_velocity
+    - mean_resultant_length
+    - largest_deviation
+    - inter_scroll_ms
+
+adaptation:
+  # Exponentially weighted update. Low alpha means the baseline moves slowly.
+  alpha: 0.05
+
+contamination:
+  # A window updates the baseline only if it is not itself anomalous, and only if it does
+  # not fall inside the post-intervention exclusion window. The KT guards the first, the
+  # blueprint guards the second; both are required.
+  max_deviation_for_update: 2.0
+  post_intervention_exclusion_s: 300

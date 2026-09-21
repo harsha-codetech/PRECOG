@@ -1,0 +1,101 @@
+# Synthetic behavioural data — generative ruleset.
+#
+# PURPOSE. Synthetic results are NEVER evidence that PRECOG works on people. This generator
+# exists to test the MECHANISM that EXP-003 could only infer: personalization should help
+# when a deviation is person-relative and should NOT help when it is population-consistent.
+# Only a generator can produce both kinds on demand with ground truth.
+#
+# REALISM. Population means, between-user spread and the within-user covariance structure
+# are FITTED FROM REAL DATA (FETA or HMOG) rather than invented, so feature correlations
+# match what the real pipeline sees.
+
+synthetic_version: synth-v0.1
+seed: 20260920
+fit_from: data/processed/feta_gesture-features_features-v0.1.parquet
+
+population:
+  n_users: 200
+  sessions_per_user: 30
+  gestures_per_session: [40, 120]     # uniform draw per session
+  days_span: 30
+
+# ---------------------------------------------------------------------------
+# RULE 1 — Users differ, and they differ in HOW MUCH they differ.
+#   user mean   : mu_uf = mu_f + tau_f * z_u          z_u ~ N(0,1)
+#   user spread : sigma_uf = sigma_f * exp(kappa_u)
+# Distinctiveness of user u is tau_f / sigma_uf. A user with large kappa is internally
+# variable and therefore hard to characterise — the "Arjun" case from the personas, which
+# EXP-001/005 found in ~25% of real subjects.
+# ---------------------------------------------------------------------------
+users:
+  kappa_mean: 0.0
+  kappa_sd: 0.55            # spread of per-user variability; tuned to reproduce the
+                            # 0%-85% distinctiveness range seen in FETA
+  distinctive_fraction: 0.25   # share deliberately placed in the low-kappa (distinctive) tail
+
+# ---------------------------------------------------------------------------
+# RULE 2 — Baselines drift. EXP-005b measured +12% median deviation over 30 days in FETA;
+# drift_scale is expressed in within-user sigma per 30 days to reproduce that.
+# ---------------------------------------------------------------------------
+drift:
+  enabled: true
+  scale_sigma_per_30d: 0.35
+  per_user_sd: 0.20         # some people drift more than others
+
+# ---------------------------------------------------------------------------
+# RULE 3 — Context shifts behaviour. A two-level context (analogous to HMOG sit/walk)
+# applied as a fixed offset, so context-conditioned baselines have something to condition on.
+# ---------------------------------------------------------------------------
+context:
+  levels: [primary, secondary]
+  secondary_fraction: 0.35
+  shift_sigma: 0.40
+
+# ---------------------------------------------------------------------------
+# RULE 4 — THE CORE MANIPULATION. Two anomaly types, identical in every respect except
+# what they are scaled by.
+#
+#   population_consistent : x += magnitude * tau_f     (same physical change for everyone)
+#   person_relative       : x += magnitude * sigma_uf  (scaled to each person's own spread)
+#
+# PREDICTION: personalization should help for person_relative and NOT for
+# population_consistent. If the generator reproduces EXP-003's null under
+# population_consistent and a benefit under person_relative, the mechanism is confirmed.
+# ---------------------------------------------------------------------------
+anomaly:
+  types: [population_consistent, person_relative]
+  magnitudes: [0.5, 1.0, 1.5, 2.0]
+  affected_fraction: 0.30        # share of a user's later sessions that are anomalous
+  episode: contiguous            # anomalies arrive as runs, as real episodes would
+  direction:                     # sign per feature; magnitude applied on top
+    average_velocity: +1.0
+    velocity_p50: +1.0
+    velocity_p80: +1.0
+    inter_scroll_ms: -1.0
+    duration_ms: -0.5
+
+# ---------------------------------------------------------------------------
+# RULE 5 — Fidelity guards. Synthetic gestures must satisfy the same invariants as real
+# ones, or downstream code silently behaves differently on synthetic input.
+# ---------------------------------------------------------------------------
+constraints:
+  non_negative:
+    - duration_ms
+    - trajectory_length
+    - end_to_end_distance
+    - average_velocity
+    - velocity_p20
+    - velocity_p50
+    - velocity_p80
+    - largest_deviation
+    - deviation_p20
+    - deviation_p50
+    - deviation_p80
+    - mid_stroke_area
+    - inter_scroll_ms
+    - n_samples
+  bounded_01:
+    - end_to_end_traj_ratio
+    - mean_resultant_length
+  # trajectory_length >= end_to_end_distance must hold, as it does geometrically.
+  enforce_trajectory_ge_endtoend: true
