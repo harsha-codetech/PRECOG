@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRECOG — Heuristic Evaluation Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0E1320;--paper:#F7F8FA;--card:#FFFFFF;--border:#DDE1EC;
+  --accent:#1F3B73;--sage:#4A7C6F;--amber:#B5893E;--rust:#A3442E;
+  --muted:#6B7590;--faint:#A8B0C2;
+  --s0:#E8F4F1;--s1:#FFF8EC;--s2:#FFF1E8;--s3:#FDECEA;
+  --c0:#4A7C6F;--c1:#B5893E;--c2:#C07840;--c3:#A3442E;
+  --sans:'Instrument Sans',system-ui,sans-serif;
+  --mono:'Spline Sans Mono',ui-monospace,monospace;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+body{max-width:900px;margin:0 auto;padding:48px 24px 80px}
+
+/* header */
+.report-header{border-bottom:2px solid var(--accent);padding-bottom:24px;margin-bottom:40px}
+.report-tag{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+h1{font-size:28px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin-bottom:6px}
+.report-sub{font-size:14px;color:var(--muted);margin-bottom:16px}
+.meta-row{display:flex;flex-wrap:wrap;gap:24px}
+.meta-item{font-size:13px;color:var(--muted)}
+.meta-item strong{color:var(--ink)}
+
+/* section */
+h2{font-size:18px;font-weight:600;letter-spacing:-.01em;margin:40px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+h3{font-size:14px;font-weight:600;margin:24px 0 8px;color:var(--accent)}
+p{margin-bottom:12px;color:var(--ink)}
+ul{padding-left:20px;margin-bottom:12px}
+li{margin-bottom:5px;font-size:14px;color:var(--ink)}
+
+/* heuristic reference table */
+.h-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px}
+.h-table th{background:var(--accent);color:#fff;padding:8px 12px;text-align:left;font-weight:500}
+.h-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.h-table tr:nth-child(even) td{background:rgba(31,59,115,.03)}
+.hid{font-family:var(--mono);font-weight:600;color:var(--accent)}
+
+/* severity chips */
+.sev{display:inline-block;padding:2px 9px;border-radius:10px;font-family:var(--mono);font-size:11px;font-weight:500}
+.sev-0{background:#EEF2FF;color:#3B50A0}
+.sev-1{background:var(--s0);color:var(--c0)}
+.sev-2{background:var(--s1);color:var(--c1)}
+.sev-3{background:var(--s2);color:var(--c2)}
+.sev-4{background:var(--s3);color:var(--c3)}
+
+/* finding cards */
+.finding{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;position:relative}
+.finding-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+.finding-id{font-family:var(--mono);font-size:11px;color:var(--muted);flex-shrink:0}
+.finding-title{font-size:14px;font-weight:600;color:var(--ink)}
+.finding-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:12px}
+.finding-tag{padding:2px 8px;border-radius:6px;background:rgba(31,59,115,.08);color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:.06em}
+.finding-body{font-size:13px;color:var(--muted);line-height:1.55}
+.finding-rec{margin-top:8px;padding:8px 12px;background:rgba(74,124,111,.08);border-radius:6px;font-size:12px;color:var(--sage)}
+.finding-rec::before{content:"Recommendation: ";font-weight:600}
+
+/* summary grid */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:32px}
+.sum-tile{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center}
+.sum-val{font-family:var(--mono);font-size:28px;font-weight:500}
+.sum-label{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* screen section */
+.screen-section{background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px;overflow:hidden}
+.screen-hd{padding:12px 18px;background:rgba(31,59,115,.05);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.screen-name{font-size:14px;font-weight:600}
+.screen-body{padding:16px 18px}
+
+/* positive card */
+.positive{background:rgba(74,124,111,.06);border:1px solid rgba(74,124,111,.2);border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:13px;color:var(--sage)}
+.positive::before{content:"✓ ";font-weight:700}
+
+/* SUS section */
+.sus-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px}
+.sus-table th{background:var(--accent);color:#fff;padding:8px 12px;text-align:left}
+.sus-table td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.sus-score{font-family:var(--mono);font-weight:600}
+
+/* priority table */
+.pri-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px}
+.pri-table th{background:var(--ink);color:#fff;padding:8px 12px;text-align:left;font-weight:500}
+.pri-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.pri-hi{color:var(--c3);font-weight:600}
+.pri-med{color:var(--c2);font-weight:600}
+.pri-lo{color:var(--c0)}
+
+/* footer */
+.footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--faint);display:flex;justify-content:space-between}
+
+@media print{
+  body{padding:24px;font-size:13px}
+  .finding,.screen-section{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="report-tag">UI/UX Course — Evaluation Report</div>
+  <h1>PRECOG — Heuristic Evaluation</h1>
+  <div class="report-sub">Expert evaluation of the PRECOG digital wellbeing prototype against Nielsen's 10 Usability Heuristics</div>
+  <div class="meta-row">
+    <div class="meta-item"><strong>Evaluator:</strong> Sri Harsha (designer + domain expert)</div>
+    <div class="meta-item"><strong>Method:</strong> Nielsen's 10 Heuristics (expert walkthrough)</div>
+    <div class="meta-item"><strong>Date:</strong> 2026-09-20</div>
+    <div class="meta-item"><strong>Prototype:</strong> Interactive HTML prototype v0.1 (8 screens)</div>
+    <div class="meta-item"><strong>Scope:</strong> Onboarding, home dashboard, all 5 states, session detail, insight card, history</div>
+  </div>
+</div>
+
+<!-- ══ 1. METHOD ══════════════════════════════════════════════════════════════ -->
+<h2>1. Method</h2>
+<p>
+  Expert heuristic evaluation is a well-validated discount usability method (Nielsen &amp; Molich, 1990;
+  Nielsen, 1994). A single expert evaluator inspects each screen of the prototype against a
+  structured checklist of usability principles, rating each violation on a 0–4 severity scale.
+  Studies show a single expert finds approximately 35% of usability problems; the method is most
+  appropriate in early formative stages before high-fidelity implementation.
+</p>
+<p>
+  The PRECOG prototype was evaluated across all 8 defined screens (WF-01 to WF-08). Each screen
+  was inspected three times: first for layout and visual hierarchy, second for language and
+  comprehension, third for interaction flow and error prevention. All 10 heuristics were applied
+  to each screen.
+</p>
+
+<h3>Severity Scale</h3>
+<table class="h-table">
+  <tr><th>Rating</th><th>Label</th><th>Meaning</th></tr>
+  <tr><td><span class="sev sev-0">0</span></td><td>Not a problem</td><td>Cosmetic only; fix if time permits</td></tr>
+  <tr><td><span class="sev sev-1">1</span></td><td>Cosmetic</td><td>Minor issue; low priority fix</td></tr>
+  <tr><td><span class="sev sev-2">2</span></td><td>Minor</td><td>Causes some confusion; should be fixed</td></tr>
+  <tr><td><span class="sev sev-3">3</span></td><td>Major</td><td>Impairs task completion; high priority fix before hi-fi</td></tr>
+  <tr><td><span class="sev sev-4">4</span></td><td>Catastrophic</td><td>Prevents task completion; must fix immediately</td></tr>
+</table>
+
+<h3>Nielsen's 10 Heuristics (reference)</h3>
+<table class="h-table">
+  <tr><th>ID</th><th>Heuristic</th></tr>
+  <tr><td><span class="hid">H1</span></td><td>Visibility of system status</td></tr>
+  <tr><td><span class="hid">H2</span></td><td>Match between system and real world</td></tr>
+  <tr><td><span class="hid">H3</span></td><td>User control and freedom</td></tr>
+  <tr><td><span class="hid">H4</span></td><td>Consistency and standards</td></tr>
+  <tr><td><span class="hid">H5</span></td><td>Error prevention</td></tr>
+  <tr><td><span class="hid">H6</span></td><td>Recognition rather than recall</td></tr>
+  <tr><td><span class="hid">H7</span></td><td>Flexibility and efficiency of use</td></tr>
+  <tr><td><span class="hid">H8</span></td><td>Aesthetic and minimalist design</td></tr>
+  <tr><td><span class="hid">H9</span></td><td>Help users recognise, diagnose, and recover from errors</td></tr>
+  <tr><td><span class="hid">H10</span></td><td>Help and documentation</td></tr>
+</table>
+
+<!-- ══ 2. SUMMARY ════════════════════════════════════════════════════════════ -->
+<h2>2. Summary of Findings</h2>
+
+<div class="summary-grid">
+  <div class="sum-tile"><div class="sum-val">18</div><div class="sum-label">Total findings</div></div>
+  <div class="sum-tile"><div class="sum-val" style="color:var(--c3)">2</div><div class="sum-label">Major (Sev 3)</div></div>
+  <div class="sum-tile"><div class="sum-val" style="color:var(--c2)">7</div><div class="sum-label">Minor (Sev 2)</div></div>
+  <div class="sum-tile"><div class="sum-val" style="color:var(--c1)">6</div><div class="sum-label">Cosmetic (Sev 1)</div></div>
+  <div class="sum-tile"><div class="sum-val" style="color:var(--c0)">3</div><div class="sum-label">Non-issues (Sev 0)</div></div>
+  <div class="sum-tile"><div class="sum-val">8</div><div class="sum-label">Screens evaluated</div></div>
+</div>
+
+<p>No catastrophic (severity 4) issues were found. The two major issues both relate to the
+<strong>tolerance band visualisation</strong> — the central affordance of the app — and must be
+resolved before moving to a high-fidelity Figma implementation. The minor issues are concentrated
+in the <strong>Learning Mode</strong> and <strong>Not Enough Pattern</strong> screens, which are the
+most novel states with no prior-art design patterns to draw from.</p>
+
+<!-- ══ 3. PER-SCREEN FINDINGS ════════════════════════════════════════════════ -->
+<h2>3. Per-Screen Findings</h2>
+
+<!-- WF-01 HOME WITHIN RANGE -->
+<div class="screen-section">
+  <div class="screen-hd">
+    <span class="screen-name">WF-01 — Home: Within Range</span>
+    <span><span class="sev sev-2">2 findings</span></span>
+  </div>
+  <div class="screen-body">
+    <div class="positive">Tolerance band is a genuinely novel visualisation that communicates deviation without a number. The state label, headline, and sub-copy form a clear 3-level information hierarchy.</div>
+    <div class="positive">Confidence shown as "High / Medium / Low" (not a fake decimal) correctly avoids false precision. Aligns with H2 (real world match) and H5 (error prevention).</div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-01 · WF-01 · H2 · <span class="sev sev-2">Sev 2</span></div>
+          <div class="finding-title">Tolerance band has no axis labels or scale — users cannot tell what the x-axis represents</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H2 — Real world match</span>
+        <span class="finding-tag">H6 — Recognition</span>
+      </div>
+      <div class="finding-body">The band shows "slower ← → faster" but gives no indication of the unit (σ, %, time?), the band width relative to the user's actual variance, or where the population average sits. First-time users cannot anchor the marker to anything meaningful.</div>
+      <div class="finding-rec">Add a faint centre-line labelled "your usual" and a tooltip or footnote: "Band = your normal range. Marker = this session." No numbers needed — the words are enough.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-02 · WF-01 · H1 · <span class="sev sev-1">Sev 1</span></div>
+          <div class="finding-title">Confidence bar percentage (78%) is visible but not explained</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H1 — System status</span>
+        <span class="finding-tag">H10 — Help</span>
+      </div>
+      <div class="finding-body">The bar shows "78% · 840 gestures" but the home screen provides no path to understand what 78% means. A user who notices the bar and wonders "78% of what?" has no way to find out without tapping into session detail.</div>
+      <div class="finding-rec">Make the confidence row tappable, linking to a one-screen explainer: "Confidence is based on how many of your scrolling sessions PRECOG has observed. More sessions = tighter band."</div>
+    </div>
+  </div>
+</div>
+
+<!-- WF-02 UNUSUAL -->
+<div class="screen-section">
+  <div class="screen-hd">
+    <span class="screen-name">WF-02 — Home: Unusual Alert</span>
+    <span><span class="sev sev-3">1 major finding</span></span>
+  </div>
+  <div class="screen-body">
+    <div class="positive">The two-button response ("All good" / "Take a break") correctly gives the user agency over the alert rather than forcing an action. Directly addresses the false-positive anxiety concern from the usability testing plan.</div>
+    <div class="positive">Language "outside your normal range" rather than "you're addicted" is correctly non-judgmental and aligns with H2.</div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-03 · WF-02 · H4 · <span class="sev sev-3">Sev 3 — MAJOR</span></div>
+          <div class="finding-title">"All good" button has no confirmation or consequence — user cannot tell if tapping it does anything</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H4 — Consistency</span>
+        <span class="finding-tag">H1 — System status</span>
+        <span class="finding-tag">H3 — User control</span>
+      </div>
+      <div class="finding-body">Tapping "All good" presumably dismisses the alert and logs a false-positive signal, but the prototype gives no feedback — the screen does not change. Users cannot tell if the tap registered, if the alert is dismissed, or if it will return. This is the primary interaction on the most important screen.</div>
+      <div class="finding-rec">After "All good" tap: show a brief confirmation ("Got it — noted as your normal") and transition the state card back to the Within Range state. Log the dismissal for the adaptive threshold. Add this state transition to the hi-fi prototype.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-04 · WF-02 · H8 · <span class="sev sev-1">Sev 1</span></div>
+          <div class="finding-title">Alert card has no timestamp — user cannot tell if this is the current session or a past one</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H1 — System status</span>
+        <span class="finding-tag">H8 — Minimalist design</span>
+      </div>
+      <div class="finding-body">The state card says "Unusual" and shows the tolerance band but does not show which session triggered it or when it started.</div>
+      <div class="finding-rec">Add "Now · Instagram · started 11:14 PM" as a small sub-label under the state tag. Already present in WF-07 Insight Detail — carry it up to the home card.</div>
+    </div>
+  </div>
+</div>
+
+<!-- WF-03 ENGAGED -->
+<div class="screen-section">
+  <div class="screen-hd">
+    <span class="screen-name">WF-03 — Home: Engaged State</span>
+    <span><span class="sev sev-1">2 findings</span></span>
+  </div>
+  <div class="screen-body">
+    <div class="positive">The "Why no alert?" section is the strongest design decision in the prototype. It proactively explains a non-event, which directly addresses the competitive gap vs. Screen Time and Digital Wellbeing. Correct application of H1 (system tells you what it decided and why).</div>
+    <div class="positive">Showing both duration (68 min) and passive ratio (9%) with their baselines makes the reasoning transparent and auditable. Correct application of H6 (recognition).</div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-05 · WF-03 · H2 · <span class="sev sev-2">Sev 2</span></div>
+          <div class="finding-title">"Engaged" label may be misread as positive endorsement rather than a neutral state name</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H2 — Real world match</span>
+        <span class="finding-tag">H4 — Consistency</span>
+      </div>
+      <div class="finding-body">In everyday language "engaged" carries a positive connotation (engaged at work = productive). A user seeing this state might think the app is praising their session, rather than merely classifying it as intentional-but-long. This risks reinforcing long sessions.</div>
+      <div class="finding-rec">Consider "Intentional" or "Active use" as alternative labels. If "Engaged" is retained (it is the SPEC term), add a micro-label: "Long session — intentional use detected" rather than just the tag.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-06 · WF-03 · H7 · <span class="sev sev-1">Sev 1</span></div>
+          <div class="finding-title">No way for the user to override the Engaged classification if it is wrong</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H3 — User control</span>
+        <span class="finding-tag">H7 — Flexibility</span>
+      </div>
+      <div class="finding-body">If the model incorrectly classifies a compulsive session as Engaged (high passive ratio miscalculated), the user cannot say "actually I do want an alert." There is no override path.</div>
+      <div class="finding-rec">Add a subtle "I want a reminder" link at the bottom of the Engaged card. This gives power users an escape hatch without cluttering the primary view.</div>
+    </div>
+  </div>
+</div>
+
+<!-- WF-04 SESSION DETAIL -->
+<div class="screen-section">
+  <div class="screen-hd">
+    <span class="screen-name">WF-04 — Session Detail</span>
+    <span><span class="sev sev-2">2 findings</span></span>
+  </div>
+  <div class="screen-body">
+    <div class="positive">Deviation bars in σ units with colour-encoding (green within / amber unusual / red pronounced) create a scannble evidence summary. The "evidence-required" design constraint is correctly implemented here.</div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-07 · WF-04 · H2 · <span class="sev sev-3">Sev 3 — MAJOR</span></div>
+          <div class="finding-title">σ (standard deviation) units are not meaningful to a general audience</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H2 — Real world match</span>
+        <span class="finding-tag">H6 — Recognition</span>
+      </div>
+      <div class="finding-body">Showing "−2.1σ" for inter-scroll interval is technically correct and appropriate for a research paper, but a typical 18–25 year old phone user does not know what a standard deviation is. The deviation bars are visually clear but the label "−2.1σ" will be meaningless to most users, undermining the evidence-required goal.</div>
+      <div class="finding-rec">Replace σ labels with plain language multipliers in the primary view: "2.1× faster than usual" instead of "−2.1σ". Keep σ in a collapsible "technical details" section for power users and for the research paper figures. Both can coexist.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-08 · WF-04 · H4 · <span class="sev sev-2">Sev 2</span></div>
+          <div class="finding-title">Feature names ("inter-scroll ms", "passive ratio") are technical jargon</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H2 — Real world match</span>
+        <span class="finding-tag">H4 — Consistency</span>
+      </div>
+      <div class="finding-body">"inter-scroll ms" and "mean resultant length" are feature names from the Touchalytics literature, not user-facing language. A user cannot act on information they cannot understand.</div>
+      <div class="finding-rec">Map each feature to a plain-language label for display: "inter-scroll ms" → "Pause between scrolls", "passive ratio" → "Passive scrolling", "direction reversals" → "Back-and-forth". Keep technical names in tooltips or a developer mode.</div>
+    </div>
+  </div>
+</div>
+
+<!-- WF-05 LEARNING MODE -->
+<div class="screen-section">
+  <div class="screen-hd">
+    <span class="screen-name">WF-05 — Learning Mode</span>
+    <span><span class="sev sev-2">3 findings</span></span>
+  </div>
+  <div class="screen-body">
+    <div class="positive">Showing gesture count (27/80) instead of "day 1 of 5" correctly reflects the underlying metric. The copy "not a population average — PRECOG learns your rhythm" is precisely the right differentiation message.</div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-09 · WF-05 · H1 · <span class="sev sev-2">Sev 2</span></div>
+          <div class="finding-title">Users do not know what a "gesture" is — progress bar unit is opaque</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H2 — Real world match</span>
+        <span class="finding-tag">H1 — System status</span>
+      </div>
+      <div class="finding-body">"27 gestures observed / 80 needed" — users understand sessions and minutes, not gestures. The progress bar is clear visually but its unit is invisible.</div>
+      <div class="finding-rec">Add a translation: "27 scroll swipes observed (about 1 session's worth). Need around 2 more sessions." Show both the technical count and the human translation.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-10 · WF-05 · H3 · <span class="sev sev-2">Sev 2</span></div>
+          <div class="finding-title">No way to see what PRECOG has already observed during learning — black box feeling</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H1 — Visibility</span>
+        <span class="finding-tag">H3 — User control</span>
+      </div>
+      <div class="finding-body">The learning screen shows 3 metric tiles (27, 1, —) but gives no preview of the emerging baseline. The user cannot see whether what PRECOG is learning is accurate, creating a trust gap.</div>
+      <div class="finding-rec">Show a preview: "So far, your median scroll pace is 380ms — we'll use more sessions to make this precise." Even a rough early estimate builds trust in the learning process.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-11 · WF-05 · H5 · <span class="sev sev-1">Sev 1</span></div>
+          <div class="finding-title">No option to reset or restart the baseline during learning</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H3 — User control</span>
+        <span class="finding-tag">H5 — Error prevention</span>
+      </div>
+      <div class="finding-body">If a user installs PRECOG during an exam period (atypically high phone use) and then returns to normal use, their baseline will be permanently skewed. There is no way to discard the current learning data and restart.</div>
+      <div class="finding-rec">Add a "Reset baseline" option in Settings (not visible here, but must exist in hi-fi). During learning, show a faint "Start over" link.</div>
+    </div>
+  </div>
+</div>
+
+<!-- WF-06 NOT ENOUGH PATTERN -->
+<div class="screen-section">
+  <div class="screen-hd">
+    <span class="screen-name">WF-06 — Not Enough Pattern</span>
+    <span><span class="sev sev-2">2 findings</span></span>
+  </div>
+  <div class="screen-body">
+    <div class="positive">The "Honesty, not a bug" line is the strongest copy in the entire prototype. It reframes system uncertainty as a design virtue rather than a failure — exactly the right tone for the Arjun persona.</div>
+    <div class="positive">Showing the user's spread (±2.8σ) vs. population (±1.1σ) personalises the uncertainty and avoids the implication that the user is doing something wrong.</div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-12 · WF-06 · H2 · <span class="sev sev-2">Sev 2</span></div>
+          <div class="finding-title">±2.8σ and ±1.1σ are incomprehensible to a general user</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H2 — Real world match</span>
+      </div>
+      <div class="finding-body">The variability stats use σ units — the same problem as F-07 but in a more critical screen where the user needs reassurance, not confusion. Seeing "±2.8σ" when uncertain about what the app is doing will increase anxiety.</div>
+      <div class="finding-rec">Replace with: "Your scrolling varies a lot day to day — that makes it harder to spot what's unusual for you. ~12 more sessions will help PRECOG calibrate." Drop the numbers entirely on this screen.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-13 · WF-06 · H1 · <span class="sev sev-1">Sev 1</span></div>
+          <div class="finding-title">The "⋯" icon is ambiguous — could mean loading, or could be decorative</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H4 — Consistency</span>
+        <span class="finding-tag">H6 — Recognition</span>
+      </div>
+      <div class="finding-body">The ellipsis "⋯" in the centre of the Not Enough Pattern screen is intended as an honest-uncertainty icon but could be misread as a loading spinner or as a "more options" button.</div>
+      <div class="finding-rec">Replace with a waveform or soft shimmer illustration that visually suggests "fuzzy/uncertain" rather than "loading." Or use a question-mark motif with low contrast to suggest incompleteness without alarm.</div>
+    </div>
+  </div>
+</div>
+
+<!-- WF-07 INSIGHT DETAIL -->
+<div class="screen-section">
+  <div class="screen-hd">
+    <span class="screen-name">WF-07 — Insight Detail</span>
+    <span><span class="sev sev-1">2 findings</span></span>
+  </div>
+  <div class="screen-body">
+    <div class="positive">Feature deviation bars ranked most-deviant-first implement the evidence-required constraint correctly. The confidence section at the bottom grounds the entire card.</div>
+    <div class="positive">The timestamp + app + duration header ("Tuesday 11:14 PM · Instagram · 38 min") provides complete context without taking up primary space. Strong information hierarchy.</div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-14 · WF-07 · H3 · <span class="sev sev-1">Sev 1</span></div>
+          <div class="finding-title">No action available from Insight Detail — screen is read-only with no next step</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H3 — User control</span>
+        <span class="finding-tag">H7 — Flexibility</span>
+      </div>
+      <div class="finding-body">The insight card shows a deviation and its evidence, but gives the user nothing to do with that information. There is no "mark as expected," no "set a reminder," no "share," no "see similar sessions."</div>
+      <div class="finding-rec">Add two actions at the bottom: "This was normal for me" (false-positive signal) and "Set a reminder next time" (adaptive intervention). Even one action turns a read-only screen into a useful interaction.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-15 · WF-07 · H8 · <span class="sev sev-0">Sev 0</span></div>
+          <div class="finding-title">Confidence bar at 82% creates false precision alongside plain-language label</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H8 — Minimalist design</span>
+      </div>
+      <div class="finding-body">The confidence section shows both the bar (82%) and the text "high confidence comparison" — the number and the word say the same thing. Minor redundancy.</div>
+      <div class="finding-rec">Remove the percentage from the body copy; keep it as a tooltip only. Let the bar and "high / medium / low" label do the work.</div>
+    </div>
+  </div>
+</div>
+
+<!-- WF-08 HISTORY -->
+<div class="screen-section">
+  <div class="screen-hd">
+    <span class="screen-name">WF-08 — History</span>
+    <span><span class="sev sev-2">2 findings</span></span>
+  </div>
+  <div class="screen-body">
+    <div class="positive">Colour-coded state chips (Within Range / Unusual / Engaged) across the history list create a visual timeline — one week of chips tells a behavioural story at a glance. Good application of H6 (recognition over recall).</div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-16 · WF-08 · H7 · <span class="sev sev-2">Sev 2</span></div>
+          <div class="finding-title">No filtering or search — history list will become unusable after 4–6 weeks of use</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H7 — Flexibility and efficiency</span>
+      </div>
+      <div class="finding-body">The history screen shows a flat chronological list with no way to filter by app, by state, or by date range. After a month of daily use (30+ entries), finding a specific session will require extensive scrolling.</div>
+      <div class="finding-rec">Add a filter bar: "All · Unusual only · By app." Three chips at the top of the list, no additional screen needed. Implement in hi-fi.</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-17 · WF-08 · H1 · <span class="sev sev-1">Sev 1</span></div>
+          <div class="finding-title">No weekly summary — user cannot see overall trend without reading every row</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H1 — Visibility</span>
+        <span class="finding-tag">H6 — Recognition</span>
+      </div>
+      <div class="finding-body">Each session is listed individually, but there is no "this week: 2 unusual, 1 engaged, 8 normal" summary. The user has to do their own counting.</div>
+      <div class="finding-rec">Add a collapsed weekly summary chip at the top of each day group: "This week — 2 unusual · 11 normal." Expands to the session list below. Low implementation cost, high cognitive value.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Cross-screen -->
+<div class="screen-section">
+  <div class="screen-hd">
+    <span class="screen-name">Cross-screen — Consistency &amp; Navigation</span>
+    <span><span class="sev sev-1">1 finding</span></span>
+  </div>
+  <div class="screen-body">
+    <div class="finding">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">F-18 · Cross-screen · H4 · <span class="sev sev-1">Sev 1</span></div>
+          <div class="finding-title">Tab bar icon set uses symbols (⌂ ◷ ◈ ⚙) that have no standard meaning on Android</div>
+        </div>
+      </div>
+      <div class="finding-meta">
+        <span class="finding-tag">H4 — Consistency and standards</span>
+      </div>
+      <div class="finding-body">The tab bar uses Unicode symbols rather than standard Material Design icons. Android users expect the home, clock, person, and settings icons from the Material icon set. Non-standard icons increase learning time.</div>
+      <div class="finding-rec">Replace with Material Icons in the Figma hi-fi: home, history (clock), insights (bar_chart), settings. All free and platform-standard.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 4. PRIORITY TABLE ══════════════════════════════════════════════════════ -->
+<h2>4. Priority Fix List (for hi-fi Figma)</h2>
+<table class="pri-table">
+  <tr><th>#</th><th>Finding</th><th>Screen</th><th>Priority</th><th>Effort</th></tr>
+  <tr><td>F-07</td><td>Replace σ labels with "×faster/slower" plain language</td><td>WF-04</td><td class="pri-hi">Must fix</td><td>Low</td></tr>
+  <tr><td>F-03</td><td>Add state transition + confirmation after "All good" tap</td><td>WF-02</td><td class="pri-hi">Must fix</td><td>Medium</td></tr>
+  <tr><td>F-01</td><td>Add "your usual" centre-line + anchor text to tolerance band</td><td>WF-01</td><td class="pri-med">Should fix</td><td>Low</td></tr>
+  <tr><td>F-08</td><td>Plain-language feature name mapping (jargon → user language)</td><td>WF-04</td><td class="pri-med">Should fix</td><td>Low</td></tr>
+  <tr><td>F-09</td><td>Translate "gestures" → "scroll swipes / sessions"</td><td>WF-05</td><td class="pri-med">Should fix</td><td>Low</td></tr>
+  <tr><td>F-10</td><td>Show emerging baseline preview during learning</td><td>WF-05</td><td class="pri-med">Should fix</td><td>Medium</td></tr>
+  <tr><td>F-12</td><td>Remove σ units from Not Enough Pattern screen</td><td>WF-06</td><td class="pri-med">Should fix</td><td>Low</td></tr>
+  <tr><td>F-05</td><td>Clarify "Engaged" label ambiguity</td><td>WF-03</td><td class="pri-med">Should fix</td><td>Low</td></tr>
+  <tr><td>F-16</td><td>Add filter bar to History</td><td>WF-08</td><td class="pri-med">Should fix</td><td>Medium</td></tr>
+  <tr><td>F-14</td><td>Add at least one action to Insight Detail card</td><td>WF-07</td><td class="pri-med">Should fix</td><td>Low</td></tr>
+  <tr><td>F-11</td><td>Add "Reset baseline" option in Settings</td><td>WF-05</td><td class="pri-lo">Nice to have</td><td>Low</td></tr>
+  <tr><td>F-18</td><td>Replace Unicode symbols with Material Icons in hi-fi</td><td>All</td><td class="pri-lo">Nice to have</td><td>Low</td></tr>
+</table>
+
+<!-- ══ 5. HEURISTIC COVERAGE SUMMARY ════════════════════════════════════════ -->
+<h2>5. Heuristic Coverage Summary</h2>
+<table class="h-table">
+  <tr><th>Heuristic</th><th>Violations</th><th>Worst severity</th><th>Assessment</th></tr>
+  <tr><td>H1 — System status</td><td>F-02, F-04, F-10, F-13, F-17</td><td><span class="sev sev-2">2</span></td><td>Moderate — app communicates state well but confidence and history need attention</td></tr>
+  <tr><td>H2 — Real world match</td><td>F-01, F-05, F-07, F-08, F-09, F-12</td><td><span class="sev sev-3">3</span></td><td>Most violated — σ units and technical jargon throughout. Priority fix area.</td></tr>
+  <tr><td>H3 — User control</td><td>F-03, F-06, F-11, F-14</td><td><span class="sev sev-3">3</span></td><td>Moderate — alert dismissal is the critical path; override and reset also needed</td></tr>
+  <tr><td>H4 — Consistency</td><td>F-04, F-08, F-18</td><td><span class="sev sev-2">2</span></td><td>Good — terminology is consistent; icons are non-standard</td></tr>
+  <tr><td>H5 — Error prevention</td><td>F-11</td><td><span class="sev sev-1">1</span></td><td>Good — no error-prone paths identified beyond baseline reset</td></tr>
+  <tr><td>H6 — Recognition</td><td>F-01, F-07, F-13</td><td><span class="sev sev-3">3</span></td><td>Moderate — band visualisation is novel and needs anchoring</td></tr>
+  <tr><td>H7 — Flexibility</td><td>F-06, F-14, F-16</td><td><span class="sev sev-2">2</span></td><td>Moderate — power user paths and history filtering missing</td></tr>
+  <tr><td>H8 — Minimalist design</td><td>F-15</td><td><span class="sev sev-0">0</span></td><td>Strong — design is appropriately restrained; one minor redundancy</td></tr>
+  <tr><td>H9 — Error recovery</td><td>none</td><td>—</td><td>Good — no error states in scope (prototype does not have error flows)</td></tr>
+  <tr><td>H10 — Help</td><td>F-02</td><td><span class="sev sev-1">1</span></td><td>Good — confidence bar needs a tap-to-explain path</td></tr>
+</table>
+
+<!-- ══ 6. DESIGN STRENGTHS ════════════════════════════════════════════════════ -->
+<h2>6. Design Strengths</h2>
+<ul>
+  <li><strong>Tolerance band visualisation</strong> — a novel, non-numerical way to communicate personal deviation. No prior digital-wellbeing app uses this pattern.</li>
+  <li><strong>ENGAGED state with explanation</strong> — proactively explains a non-alert. Directly solves the false-positive problem that Screen Time and Digital Wellbeing do not address.</li>
+  <li><strong>Evidence-required constraint</strong> — every score carries ranked feature deviations. Session Detail and Insight Detail both implement this correctly.</li>
+  <li><strong>Honest uncertainty</strong> — "Not Enough Pattern" and the confidence band are the most distinctive design decisions vs. competitors. "Honesty, not a bug" is a standout copy line.</li>
+  <li><strong>Non-judgmental language</strong> — "outside your range" not "you're addicted." Consistently maintained across all 5 states.</li>
+  <li><strong>Colour system</strong> — green/amber/red state encoding is consistent, accessible, and meaningful without being alarming.</li>
+</ul>
+
+<!-- ══ 7. CONCLUSIONS ════════════════════════════════════════════════════════ -->
+<h2>7. Conclusions and Next Steps</h2>
+<p>
+  The PRECOG prototype demonstrates a clear and original design direction with no catastrophic
+  usability failures. The two major issues (F-03 and F-07) are both fixable with low implementation
+  effort and must be resolved before the Figma hi-fi stage. The dominant theme across violations is
+  <strong>technical language leaking into user-facing copy</strong> — σ units, feature names, and
+  gesture counts that are correct for the research paper but wrong for a general user.
+</p>
+<p>
+  The prototype is ready to progress to <strong>hi-fi Figma with the 2 major and 7 minor fixes
+  applied</strong>. A follow-up usability study with 5 real participants (formative) is recommended
+  before any implementation work begins, to validate whether the tolerance band redesign (F-01)
+  achieves comprehension without prompting.
+</p>
+
+<h3>Immediate actions before hi-fi</h3>
+<ul>
+  <li>Replace all σ labels with "×faster/slower than usual" phrasing (F-07, F-12)</li>
+  <li>Add "All good" confirmation + state transition (F-03)</li>
+  <li>Add "your usual" anchor to tolerance band (F-01)</li>
+  <li>Map all technical feature names to plain-language equivalents (F-08)</li>
+  <li>Translate "gestures" to "scroll swipes / sessions" in Learning Mode (F-09)</li>
+</ul>
+
+<!-- ══ 8. REFERENCES ══════════════════════════════════════════════════════════ -->
+<h2>8. References</h2>
+<ul>
+  <li>Nielsen, J. &amp; Molich, R. (1990). Heuristic evaluation of user interfaces. <em>CHI '90 Proceedings</em>, 249–256.</li>
+  <li>Nielsen, J. (1994). Enhancing the explanatory power of usability heuristics. <em>CHI '94 Proceedings</em>, 152–158.</li>
+  <li>Bangor, A., Kortum, P. &amp; Miller, J. (2008). An empirical evaluation of the System Usability Scale. <em>International Journal of Human-Computer Interaction</em>, 24(6), 574–594.</li>
+  <li>Okeke, F. et al. (2024). Time2Stop: Adaptive and Explainable Human-AI Loop for Smartphone Overuse Intervention. <em>CHI 2024</em>.</li>
+</ul>
+
+<div class="footer">
+  <span>PRECOG · Heuristic Evaluation Report · 2026-09-20</span>
+  <span>UI/UX Course Deliverable · Sri Harsha · chintugoutham2@gmail.com</span>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRECOG — Interactive Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spline+Sans+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#0D1017;--card:#141922;--sunk:#10151D;
+  --rule:#232A36;--rule-strong:#333C4B;
+  --ink:#E7EAF0;--muted:#98A1B1;--faint:#697283;
+  --accent:#88A8E4;
+  --within:#63AD98;--unusual:#CFA044;--pronounced:#D4746C;--learning:#8A9BB5;
+  --band-within:rgba(99,173,152,.15);--band-unusual:rgba(207,160,68,.15);
+  --band-pronounced:rgba(212,116,108,.18);--band-learning:rgba(138,155,181,.12);
+  --shadow:0 1px 3px rgba(0,0,0,.5),0 8px 24px -8px rgba(0,0,0,.6);
+  --sans:'Instrument Sans',system-ui,sans-serif;
+  --mono:'Spline Sans Mono',ui-monospace,monospace;
+  --r:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#080C12}
+body{
+  font-family:var(--sans);color:var(--ink);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;align-items:center;
+  padding:32px 16px 80px;min-height:100vh;
+}
+
+/* phone shell */
+.phone{
+  width:375px;min-height:812px;
+  background:var(--paper);border-radius:44px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 32px 80px rgba(0,0,0,.8);
+  overflow:hidden;position:relative;display:flex;flex-direction:column;
+}
+.status-bar{
+  height:44px;padding:14px 24px 0;display:flex;justify-content:space-between;
+  align-items:center;flex-shrink:0;
+}
+.status-time{font-family:var(--mono);font-size:15px;font-weight:500}
+.status-icons{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.screen{flex:1;overflow:hidden;position:relative;display:none}
+.screen.active{display:flex;flex-direction:column}
+
+/* nav bar at top */
+.nav-bar{
+  padding:8px 20px 12px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--rule);
+}
+.nav-title{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.nav-back{color:var(--accent);font-size:14px;cursor:pointer;padding:4px 0}
+.scroll-area{flex:1;overflow-y:auto;padding:0 20px 32px}
+.scroll-area::-webkit-scrollbar{display:none}
+
+/* app header */
+.app-header{padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between}
+.app-name{font-size:22px;font-weight:600;letter-spacing:-.02em}
+.app-sub{font-size:12px;color:var(--faint);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.avatar{width:36px;height:36px;border-radius:18px;background:var(--accent);opacity:.3}
+
+/* state card */
+.state-card{
+  margin:0 20px 16px;border-radius:var(--r);padding:20px;
+  background:var(--card);border:1px solid var(--rule);
+  position:relative;overflow:hidden;cursor:pointer;
+  transition:transform .15s ease;
+}
+.state-card:active{transform:scale(.98)}
+.state-card::before{
+  content:'';position:absolute;inset:0;border-radius:var(--r);
+  opacity:.7;pointer-events:none;
+}
+.state-card.within::before{background:var(--band-within)}
+.state-card.unusual::before{background:var(--band-unusual)}
+.state-card.pronounced::before{background:var(--band-pronounced)}
+.state-card.learning::before{background:var(--band-learning)}
+.state-card.engaged::before{background:rgba(136,168,228,.1)}
+
+.state-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.within .state-label{color:var(--within)}
+.unusual .state-label{color:var(--unusual)}
+.pronounced .state-label{color:var(--pronounced)}
+.learning .state-label,.not-enough .state-label{color:var(--learning)}
+.engaged .state-label{color:var(--accent)}
+
+.state-headline{font-size:20px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+.state-sub{font-size:13px;color:var(--muted);line-height:1.45}
+
+/* tolerance band viz */
+.band-viz{
+  margin:16px 0 4px;height:48px;border-radius:8px;
+  background:var(--sunk);position:relative;overflow:hidden;
+}
+.band-fill{
+  position:absolute;top:50%;transform:translateY(-50%);
+  border-radius:4px;transition:all .4s cubic-bezier(.4,0,.2,1);
+}
+.band-marker{
+  position:absolute;top:0;bottom:0;width:2px;border-radius:1px;
+  transition:left .4s cubic-bezier(.4,0,.2,1);
+}
+.band-label-row{display:flex;justify-content:space-between;margin-top:6px}
+.band-label{font-family:var(--mono);font-size:10px;color:var(--faint)}
+
+/* feature deviations */
+.deviation-list{margin-top:12px}
+.deviation-row{
+  display:flex;align-items:center;gap:10px;padding:10px 0;
+  border-bottom:1px solid var(--rule);
+}
+.deviation-row:last-child{border-bottom:none}
+.dev-bar-wrap{flex:1;height:4px;background:var(--sunk);border-radius:2px;overflow:hidden}
+.dev-bar{height:100%;border-radius:2px;transition:width .4s}
+.dev-name{font-size:12px;color:var(--muted);flex:0 0 140px}
+.dev-val{font-family:var(--mono);font-size:11px;color:var(--faint);flex:0 0 44px;text-align:right}
+
+/* metric tiles */
+.metrics-row{display:flex;gap:10px;margin:0 20px 14px}
+.metric-tile{
+  flex:1;background:var(--card);border:1px solid var(--rule);
+  border-radius:12px;padding:14px 12px;
+}
+.metric-val{font-family:var(--mono);font-size:22px;font-weight:500;letter-spacing:-.02em}
+.metric-label{font-size:11px;color:var(--faint);margin-top:3px}
+
+/* section header */
+.section-hd{padding:16px 20px 8px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:600}
+
+/* insight cards */
+.insight-card{
+  background:var(--card);border:1px solid var(--rule);border-radius:var(--r);
+  padding:16px;margin:0 20px 10px;cursor:pointer;
+  transition:transform .15s;
+}
+.insight-card:active{transform:scale(.98)}
+.insight-eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.insight-text{font-size:14px;line-height:1.5;margin-bottom:8px}
+.insight-evidence{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 10px;line-height:1.6}
+
+/* confidence band */
+.confidence-row{display:flex;align-items:center;gap:10px;padding:12px 20px}
+.conf-bar-wrap{flex:1;height:6px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.conf-bar{height:100%;border-radius:3px;background:var(--accent);opacity:.6}
+.conf-label{font-family:var(--mono);font-size:11px;color:var(--faint);flex:0 0 90px}
+
+/* bottom tab bar */
+.tab-bar{
+  height:82px;border-top:1px solid var(--rule);background:var(--card);
+  display:flex;align-items:flex-start;padding-top:10px;flex-shrink:0;
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+  cursor:pointer;padding:4px 0;transition:opacity .15s;
+}
+.tab.active .tab-icon{color:var(--accent)}
+.tab.active .tab-name{color:var(--accent)}
+.tab-icon{font-size:20px;color:var(--faint)}
+.tab-name{font-size:10px;color:var(--faint)}
+
+/* progress / learning */
+.progress-track{
+  margin:0 20px 16px;background:var(--sunk);border-radius:8px;overflow:hidden;height:6px;
+}
+.progress-fill{height:100%;border-radius:8px;background:var(--learning);transition:width .6s}
+
+/* not-enough-pattern state */
+.haze-band{
+  margin:16px 20px;border-radius:var(--r);
+  background:var(--band-learning);border:1px dashed rgba(138,155,181,.3);
+  padding:20px;text-align:center;
+}
+.haze-icon{font-size:32px;margin-bottom:10px}
+.haze-title{font-size:16px;font-weight:600;margin-bottom:6px}
+.haze-text{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* screen nav controls (outside phone, for prototype) */
+.controls{
+  width:375px;margin-top:20px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+}
+.ctrl-btn{
+  padding:8px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);color:#E7EAF0;font-size:12px;
+  cursor:pointer;font-family:var(--sans);transition:background .15s;
+}
+.ctrl-btn:hover{background:rgba(255,255,255,.12)}
+.ctrl-btn.active{background:var(--accent);color:#0D1017;border-color:var(--accent)}
+.prototype-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(255,255,255,.25);margin-bottom:12px;
+}
+
+/* utility */
+.divider{height:1px;background:var(--rule);margin:4px 20px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;
+}
+.chip.within{background:rgba(99,173,152,.18);color:var(--within)}
+.chip.unusual{background:rgba(207,160,68,.18);color:var(--unusual)}
+.chip.pronounced{background:rgba(212,116,108,.2);color:var(--pronounced)}
+.chip.engaged{background:rgba(136,168,228,.15);color:var(--accent)}
+.chip.learning{background:rgba(138,155,181,.15);color:var(--learning)}
+</style>
+</head>
+<body>
+
+<p class="prototype-label">PRECOG · Interactive Prototype v0.1</p>
+
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">●●●● 5G 🔋</span>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 1 — HOME (default: within range)
+  ══════════════════════════════════════════════════════ -->
+  <div class="screen active" id="screen-home">
+    <div class="app-header">
+      <div>
+        <div class="app-name">PRECOG</div>
+        <div class="app-sub">Your scroll baseline</div>
+      </div>
+      <div class="avatar"></div>
+    </div>
+
+    <div id="main-state-card" class="state-card within" onclick="navigate('screen-detail')">
+      <div class="state-label" id="main-state-label">Within your range</div>
+      <div class="state-headline" id="main-state-headline">Session looks normal</div>
+      <div class="state-sub" id="main-state-sub">Pace and rhythm match your baseline for this time of day.</div>
+
+      <div class="band-viz">
+        <div class="band-fill" id="band-fill" style="left:18%;width:54%;height:20px;background:rgba(99,173,152,.35)"></div>
+        <div class="band-marker" id="band-marker" style="left:42%;background:var(--within)"></div>
+      </div>
+      <div class="band-label-row">
+        <span class="band-label">slower than usual</span>
+        <span class="band-label">faster than usual</span>
+      </div>
+    </div>
+
+    <div class="metrics-row">
+      <div class="metric-tile">
+        <div class="metric-val" id="met-duration">18 <span style="font-size:14px">min</span></div>
+        <div class="metric-label">Session length</div>
+      </div>
+      <div class="metric-tile">
+        <div class="metric-val" id="met-passive">12<span style="font-size:14px">%</span></div>
+        <div class="metric-label">Passive ratio</div>
+      </div>
+      <div class="metric-tile">
+        <div class="metric-val" id="met-conf">High</div>
+        <div class="metric-label">Confidence</div>
+      </div>
+    </div>
+
+    <div class="confidence-row">
+      <span class="conf-label">Baseline quality</span>
+      <div class="conf-bar-wrap"><div class="conf-bar" id="conf-bar" style="width:78%"></div></div>
+      <span class="conf-label" style="text-align:right" id="conf-pct">78% · 840 gestures</span>
+    </div>
+
+    <div class="section-hd">Recent insights</div>
+    <div class="insight-card" onclick="navigate('screen-insight')">
+      <div class="insight-eyebrow">2 hours ago · Instagram</div>
+      <div class="insight-text">Your scroll pace was 1.4× faster than usual, but you were active throughout.</div>
+      <div class="insight-evidence">passive ratio 8% ↓ (baseline 21%) · inter-scroll 310ms ↓ · no burst episodes</div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active"><div class="tab-icon">⌂</div><div class="tab-name">Home</div></div>
+      <div class="tab" onclick="navigate('screen-history')"><div class="tab-icon">◷</div><div class="tab-name">History</div></div>
+      <div class="tab"><div class="tab-icon">◈</div><div class="tab-name">Baseline</div></div>
+      <div class="tab"><div class="tab-icon">⚙</div><div class="tab-name">Settings</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 2 — SESSION DETAIL
+  ══════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-detail">
+    <div class="nav-bar">
+      <span class="nav-back" onclick="navigate('screen-home')">← Back</span>
+      <span class="nav-title">Session detail</span>
+      <span style="width:40px"></span>
+    </div>
+    <div class="scroll-area">
+      <div style="padding:16px 0 4px;display:flex;align-items:center;gap:10px">
+        <div id="detail-chip" class="chip within">● Within range</div>
+        <span style="font-size:12px;color:var(--muted)">Instagram · 9:18 PM</span>
+      </div>
+      <div style="font-size:22px;font-weight:600;margin-bottom:4px;margin-top:6px" id="detail-headline">Session looks normal</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px" id="detail-sub">Pace and rhythm match your baseline.</div>
+
+      <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:600">Feature deviations</div>
+      <div class="deviation-list" id="deviation-list">
+        <!-- populated by JS -->
+      </div>
+
+      <div style="margin-top:20px;background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:16px">
+        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:600">What this means</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6" id="detail-explanation">
+          Your scrolling today was consistent with how you normally use Instagram in the evening.
+          No unusual bursts detected. Passive ratio was lower than baseline — you were more
+          interactive than usual, which is associated with intentional use.
+        </div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab" onclick="navigate('screen-home')"><div class="tab-icon">⌂</div><div class="tab-name">Home</div></div>
+      <div class="tab active"><div class="tab-icon">◷</div><div class="tab-name">History</div></div>
+      <div class="tab"><div class="tab-icon">◈</div><div class="tab-name">Baseline</div></div>
+      <div class="tab"><div class="tab-icon">⚙</div><div class="tab-name">Settings</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 3 — LEARNING MODE
+  ══════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-learning">
+    <div class="app-header">
+      <div>
+        <div class="app-name">PRECOG</div>
+        <div class="app-sub">Learning your baseline</div>
+      </div>
+      <div class="avatar" style="background:var(--learning)"></div>
+    </div>
+
+    <div class="state-card learning">
+      <div class="state-label">Learning mode</div>
+      <div class="state-headline">Building your baseline</div>
+      <div class="state-sub">PRECOG needs about 80 more gestures before it can make confident comparisons. That is roughly 2 more scrolling sessions.</div>
+      <div class="progress-track" style="margin:16px 0 6px">
+        <div class="progress-fill" style="width:34%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint)">
+        <span>27 gestures observed</span>
+        <span>80 needed</span>
+      </div>
+    </div>
+
+    <div style="margin:4px 20px 0;background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:16px">
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">
+        During this period PRECOG is watching but not alerting. It is learning what <em>your</em> normal looks like — not a population average.
+        <br><br>
+        You can scroll normally. The learning period reflects your actual habits, including late nights.
+      </div>
+    </div>
+
+    <div class="section-hd">What PRECOG has observed so far</div>
+    <div class="metrics-row">
+      <div class="metric-tile">
+        <div class="metric-val">27</div>
+        <div class="metric-label">Gestures</div>
+      </div>
+      <div class="metric-tile">
+        <div class="metric-val">1</div>
+        <div class="metric-label">Sessions</div>
+      </div>
+      <div class="metric-tile">
+        <div class="metric-val">—</div>
+        <div class="metric-label">Confidence</div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="navigate('screen-home')"><div class="tab-icon">⌂</div><div class="tab-name">Home</div></div>
+      <div class="tab" onclick="navigate('screen-history')"><div class="tab-icon">◷</div><div class="tab-name">History</div></div>
+      <div class="tab"><div class="tab-icon">◈</div><div class="tab-name">Baseline</div></div>
+      <div class="tab"><div class="tab-icon">⚙</div><div class="tab-name">Settings</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 4 — UNUSUAL ALERT
+  ══════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-unusual">
+    <div class="app-header">
+      <div>
+        <div class="app-name">PRECOG</div>
+        <div class="app-sub">Your scroll baseline</div>
+      </div>
+      <div class="avatar" style="background:var(--unusual);opacity:.5"></div>
+    </div>
+
+    <div class="state-card unusual" onclick="navigate('screen-detail-unusual')">
+      <div class="state-label">Unusual</div>
+      <div class="state-headline">Outside your normal range</div>
+      <div class="state-sub">Scroll pace and passive ratio are both higher than your typical Tuesday evening.</div>
+      <div class="band-viz">
+        <div class="band-fill" style="left:18%;width:54%;height:20px;background:rgba(207,160,68,.3)"></div>
+        <div class="band-marker" style="left:76%;background:var(--unusual)"></div>
+      </div>
+      <div class="band-label-row">
+        <span class="band-label">slower than usual</span>
+        <span class="band-label">faster than usual</span>
+      </div>
+    </div>
+
+    <div class="section-hd">What's different</div>
+    <div class="insight-card" onclick="navigate('screen-insight')">
+      <div class="insight-eyebrow">This session · Instagram</div>
+      <div class="insight-text">Scroll pace 2.1× faster than your baseline. You haven't paused in 14 minutes.</div>
+      <div class="insight-evidence">inter-scroll 180ms (baseline 390ms) · passive ratio 67% ↑ · rapid-fire bursts: 4 episodes · longest continuous: 14 min</div>
+    </div>
+
+    <div style="margin:0 20px;background:var(--card);border:1px solid rgba(207,160,68,.3);border-radius:var(--r);padding:16px">
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">
+        This is not a judgment. It is a comparison against <em>your own</em> usual Tuesday evening pattern.
+        Some deviations are fine — you might just be watching something engaging.
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <div style="flex:1;background:var(--sunk);border-radius:10px;padding:10px 12px;text-align:center;font-size:13px;cursor:pointer">All good</div>
+        <div style="flex:1;background:rgba(207,160,68,.15);border-radius:10px;padding:10px 12px;text-align:center;font-size:13px;color:var(--unusual);cursor:pointer">Take a break</div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="navigate('screen-home')"><div class="tab-icon">⌂</div><div class="tab-name">Home</div></div>
+      <div class="tab" onclick="navigate('screen-history')"><div class="tab-icon">◷</div><div class="tab-name">History</div></div>
+      <div class="tab"><div class="tab-icon">◈</div><div class="tab-name">Baseline</div></div>
+      <div class="tab"><div class="tab-icon">⚙</div><div class="tab-name">Settings</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 5 — NOT ENOUGH PATTERN
+  ══════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-notenough">
+    <div class="app-header">
+      <div>
+        <div class="app-name">PRECOG</div>
+        <div class="app-sub">Your scroll baseline</div>
+      </div>
+      <div class="avatar" style="background:var(--faint);opacity:.5"></div>
+    </div>
+
+    <div class="haze-band">
+      <div class="haze-icon">⋯</div>
+      <div class="haze-title" style="color:var(--muted)">Not enough pattern yet</div>
+      <div class="haze-text">Your scrolling varies too much to make a confident comparison right now. This is normal — some people have wider natural variation than others.</div>
+    </div>
+
+    <div style="margin:0 20px;background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:16px;margin-bottom:14px">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:10px">Your variability profile</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">
+        Baseline spread: <span style="color:var(--ink);font-family:var(--mono)">±2.8σ</span> (population median ±1.1σ)<br>
+        Sessions needed for tight band: <span style="color:var(--ink);font-family:var(--mono)">~12 more</span><br>
+        PRECOG will still notify on strong deviations. It will not alert on weak ones.
+      </div>
+    </div>
+
+    <div style="margin:0 20px;background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:16px">
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">
+        <strong style="color:var(--ink)">This is honesty, not a bug.</strong> An app that guesses when uncertain adds noise. PRECOG declines to guess.
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="navigate('screen-home')"><div class="tab-icon">⌂</div><div class="tab-name">Home</div></div>
+      <div class="tab" onclick="navigate('screen-history')"><div class="tab-icon">◷</div><div class="tab-name">History</div></div>
+      <div class="tab"><div class="tab-icon">◈</div><div class="tab-name">Baseline</div></div>
+      <div class="tab"><div class="tab-icon">⚙</div><div class="tab-name">Settings</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 6 — ENGAGED STATE
+  ══════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-engaged">
+    <div class="app-header">
+      <div>
+        <div class="app-name">PRECOG</div>
+        <div class="app-sub">Your scroll baseline</div>
+      </div>
+      <div class="avatar" style="background:var(--accent);opacity:.5"></div>
+    </div>
+
+    <div class="state-card engaged">
+      <div class="state-label" style="color:var(--accent)">Engaged</div>
+      <div class="state-headline">Long session, intentional use</div>
+      <div class="state-sub">Duration is above your usual range, but you're actively interacting — not passively drifting. PRECOG won't interrupt.</div>
+      <div class="band-viz">
+        <div class="band-fill" style="left:18%;width:54%;height:20px;background:rgba(136,168,228,.2)"></div>
+        <div class="band-marker" style="left:80%;background:var(--accent)"></div>
+      </div>
+      <div class="band-label-row">
+        <span class="band-label">shorter than usual</span>
+        <span class="band-label">longer than usual</span>
+      </div>
+    </div>
+
+    <div style="margin:0 20px 14px;background:var(--card);border:1px solid rgba(136,168,228,.2);border-radius:var(--r);padding:16px">
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">
+        <strong style="color:var(--ink)">Why no alert?</strong><br>
+        Session duration: 68 min (baseline 22 min) — well above normal.<br>
+        Passive ratio: 9% (baseline 28%) — you are clicking, saving, pausing deliberately.<br><br>
+        High duration + low passive ratio = ENGAGED. PRECOG treats this as intentional use and does not interrupt.
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="navigate('screen-home')"><div class="tab-icon">⌂</div><div class="tab-name">Home</div></div>
+      <div class="tab" onclick="navigate('screen-history')"><div class="tab-icon">◷</div><div class="tab-name">History</div></div>
+      <div class="tab"><div class="tab-icon">◈</div><div class="tab-name">Baseline</div></div>
+      <div class="tab"><div class="tab-icon">⚙</div><div class="tab-name">Settings</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 7 — INSIGHT DETAIL
+  ══════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-insight">
+    <div class="nav-bar">
+      <span class="nav-back" onclick="navigateBack()">← Back</span>
+      <span class="nav-title">Insight</span>
+      <span style="width:40px"></span>
+    </div>
+    <div class="scroll-area">
+      <div style="padding:16px 0">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:8px">Tuesday, 11:14 PM · Instagram · 38 min</div>
+        <div style="font-size:22px;font-weight:600;margin-bottom:6px">Scroll pace 2.1× faster than your Tuesday evening baseline</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.55">You scrolled quickly with very few pauses across the whole session. Your usual Tuesday pace is noticeably slower.</div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:12px">Evidence</div>
+        <div class="deviation-list">
+          <div class="deviation-row">
+            <div class="dev-name">inter-scroll interval</div>
+            <div class="dev-bar-wrap"><div class="dev-bar" style="width:85%;background:var(--pronounced)"></div></div>
+            <div class="dev-val" style="color:var(--pronounced)">−2.1σ</div>
+          </div>
+          <div class="deviation-row">
+            <div class="dev-name">passive ratio</div>
+            <div class="dev-bar-wrap"><div class="dev-bar" style="width:70%;background:var(--unusual)"></div></div>
+            <div class="dev-val" style="color:var(--unusual)">+1.7σ</div>
+          </div>
+          <div class="deviation-row">
+            <div class="dev-name">rapid-fire bursts</div>
+            <div class="dev-bar-wrap"><div class="dev-bar" style="width:55%;background:var(--unusual)"></div></div>
+            <div class="dev-val" style="color:var(--unusual)">+1.4σ</div>
+          </div>
+          <div class="deviation-row">
+            <div class="dev-name">session duration</div>
+            <div class="dev-bar-wrap"><div class="dev-bar" style="width:42%;background:var(--muted)"></div></div>
+            <div class="dev-val">+1.1σ</div>
+          </div>
+          <div class="deviation-row">
+            <div class="dev-name">scroll delta mean</div>
+            <div class="dev-bar-wrap"><div class="dev-bar" style="width:18%;background:var(--muted)"></div></div>
+            <div class="dev-val">+0.4σ</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:16px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:8px">Confidence</div>
+        <div class="conf-bar-wrap" style="height:6px;margin-bottom:6px"><div class="conf-bar" style="width:82%"></div></div>
+        <div style="font-size:12px;color:var(--muted)">82% · based on 840 enrolled gestures over 21 days. This is a high-confidence comparison.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 8 — HISTORY
+  ══════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-history">
+    <div class="nav-bar">
+      <span style="width:40px"></span>
+      <span class="nav-title">History</span>
+      <span style="width:40px"></span>
+    </div>
+    <div class="scroll-area">
+      <div style="padding:8px 0 16px">
+        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:600">Today</div>
+        <div onclick="navigate('screen-unusual')" style="background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:500">Instagram</span>
+            <span class="chip unusual">Unusual</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">11:14 PM · 38 min · pace 2.1× faster</div>
+        </div>
+        <div onclick="navigate('screen-detail')" style="background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:500">YouTube</span>
+            <span class="chip engaged">Engaged</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">8:30 PM · 68 min · intentional use</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:500">Instagram</span>
+            <span class="chip within">Within range</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">6:15 PM · 12 min · normal pace</div>
+        </div>
+        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:16px 0 10px;font-weight:600">Yesterday</div>
+        <div style="background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:500">Reddit</span>
+            <span class="chip within">Within range</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">10:40 PM · 24 min</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:500">Instagram</span>
+            <span class="chip within">Within range</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">7:00 PM · 18 min</div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab" onclick="navigate('screen-home')"><div class="tab-icon">⌂</div><div class="tab-name">Home</div></div>
+      <div class="tab active"><div class="tab-icon">◷</div><div class="tab-name">History</div></div>
+      <div class="tab"><div class="tab-icon">◈</div><div class="tab-name">Baseline</div></div>
+      <div class="tab"><div class="tab-icon">⚙</div><div class="tab-name">Settings</div></div>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<!-- Prototype screen picker -->
+<div class="controls">
+  <button class="ctrl-btn active" onclick="showState('within')">Within Range</button>
+  <button class="ctrl-btn" onclick="showState('unusual')">Unusual Alert</button>
+  <button class="ctrl-btn" onclick="showState('engaged')">Engaged</button>
+  <button class="ctrl-btn" onclick="showState('learning')">Learning Mode</button>
+  <button class="ctrl-btn" onclick="showState('notenough')">Not Enough Pattern</button>
+  <button class="ctrl-btn" onclick="navigate('screen-history')">History</button>
+  <button class="ctrl-btn" onclick="navigate('screen-insight')">Insight Detail</button>
+</div>
+
+<script>
+const SCREEN_HISTORY = [];
+
+function navigate(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  SCREEN_HISTORY.push(id);
+}
+
+function navigateBack() {
+  SCREEN_HISTORY.pop();
+  const prev = SCREEN_HISTORY[SCREEN_HISTORY.length - 1] || 'screen-home';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(prev).classList.add('active');
+}
+
+const STATES = {
+  within: {
+    screen: 'screen-home',
+    cardClass: 'within',
+    label: 'Within your range',
+    headline: 'Session looks normal',
+    sub: 'Pace and rhythm match your baseline for this time of day.',
+    markerLeft: '42%',
+    fillLeft: '18%', fillWidth: '54%',
+    fillColor: 'rgba(99,173,152,.35)',
+    markerColor: 'var(--within)',
+    duration: '18 min', passive: '12%', conf: 'High',
+    confW: '78%',
+  },
+  unusual: {
+    screen: 'screen-unusual',
+    cardClass: 'unusual',
+    label: 'Unusual',
+    headline: 'Outside your normal range',
+    sub: 'Scroll pace and passive ratio are both higher than typical.',
+    markerLeft: '76%',
+    fillLeft: '18%', fillWidth: '54%',
+    fillColor: 'rgba(207,160,68,.3)',
+    markerColor: 'var(--unusual)',
+    duration: '38 min', passive: '67%', conf: 'High',
+    confW: '78%',
+  },
+  engaged: {
+    screen: 'screen-engaged',
+  },
+  learning: {
+    screen: 'screen-learning',
+  },
+  notenough: {
+    screen: 'screen-notenough',
+  },
+};
+
+function showState(name) {
+  document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  const s = STATES[name];
+  if (s) navigate(s.screen);
+}
+
+// populate deviation list on detail screen
+const deviations = [
+  {name: 'inter-scroll ms', val: '−0.3σ', w: 20, col: 'var(--within)'},
+  {name: 'passive ratio', val: '−0.8σ', w: 36, col: 'var(--within)'},
+  {name: 'rapid-fire rate', val: '+0.2σ', w: 12, col: 'var(--muted)'},
+  {name: 'session duration', val: '−0.1σ', w: 8, col: 'var(--muted)'},
+  {name: 'scroll delta', val: '+0.4σ', w: 22, col: 'var(--muted)'},
+];
+const dl = document.getElementById('deviation-list');
+deviations.forEach(d => {
+  dl.innerHTML += `<div class="deviation-row">
+    <div class="dev-name">${d.name}</div>
+    <div class="dev-bar-wrap"><div class="dev-bar" style="width:${d.w}%;background:${d.col}"></div></div>
+    <div class="dev-val">${d.val}</div>
+  </div>`;
+});
+</script>
+</body>
+</html>

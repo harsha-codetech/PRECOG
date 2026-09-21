@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRECOG — Wireframes</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0D13;--surface:#141922;--border:#22293A;--ink:#E0E4EE;
+  --muted:#8A93A8;--faint:#4D566B;--accent:#4A7FC1;
+  --within:#5C9E8A;--unusual:#C09040;--pronounced:#B86060;--learning:#7A8FAD;
+  --sans:'Instrument Sans',sans-serif;--mono:'Spline Sans Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5}
+body{padding:48px 32px 80px;max-width:1280px;margin:0 auto}
+
+h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+.subtitle{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:40px}
+
+/* screen grid */
+.screens-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:32px}
+
+/* each wireframe block */
+.wf{display:flex;flex-direction:column;gap:10px}
+.wf-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.wf-name{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.wf-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:4px}
+
+/* phone frame */
+.phone{
+  width:240px;background:var(--surface);border-radius:28px;
+  border:1px solid var(--border);overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,.5);
+}
+.status{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 18px 8px;font-family:var(--mono);font-size:10px;color:var(--muted);
+}
+.screen-body{padding:0 0 16px}
+
+/* wireframe primitives */
+.wf-row{display:flex;justify-content:space-between;align-items:center;padding:6px 16px}
+.wf-title{font-size:15px;font-weight:600;color:var(--ink)}
+.wf-sub{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.wf-divider{height:1px;background:var(--border);margin:4px 0}
+.wf-card{
+  margin:8px 12px;background:rgba(255,255,255,.03);border-radius:10px;
+  border:1px solid var(--border);padding:12px 12px;
+}
+.wf-tag{
+  display:inline-block;padding:2px 8px;border-radius:6px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:6px;
+}
+.tag-within{background:rgba(92,158,138,.15);color:var(--within)}
+.tag-unusual{background:rgba(192,144,64,.15);color:var(--unusual)}
+.tag-learning{background:rgba(122,143,173,.15);color:var(--learning)}
+.tag-engaged{background:rgba(74,127,193,.15);color:var(--accent)}
+.tag-notenough{background:rgba(77,86,107,.2);color:var(--muted)}
+
+.wf-card-title{font-size:12px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.wf-card-text{font-size:10px;color:var(--muted);line-height:1.4}
+
+/* band placeholder */
+.band-box{
+  height:32px;background:rgba(255,255,255,.04);border-radius:6px;
+  margin:8px 0 4px;position:relative;overflow:hidden;
+}
+.band-fill{
+  position:absolute;top:25%;height:50%;border-radius:3px;
+}
+.band-dot{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:4px;height:16px;border-radius:2px;
+}
+.band-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--faint)}
+
+/* metric row */
+.metrics{display:flex;gap:6px;margin:8px 12px 0}
+.metric-box{
+  flex:1;background:rgba(255,255,255,.03);border-radius:8px;
+  padding:8px 8px;border:1px solid var(--border);
+}
+.m-val{font-family:var(--mono);font-size:14px;font-weight:500}
+.m-label{font-size:9px;color:var(--muted);margin-top:1px}
+
+/* tab bar */
+.tab-bar{
+  display:flex;border-top:1px solid var(--border);padding:8px 0 4px;
+  margin-top:10px;
+}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tab-ic{font-size:14px;color:var(--faint)}
+.tab-lbl{font-size:8px;color:var(--faint)}
+.tab.act .tab-ic,.tab.act .tab-lbl{color:var(--accent)}
+
+/* deviation bars */
+.dev-row{display:flex;align-items:center;gap:6px;padding:5px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.dev-name{font-size:9px;color:var(--muted);flex:0 0 90px}
+.dev-bar-w{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.dev-bar{height:100%;border-radius:2px}
+.dev-sig{font-family:var(--mono);font-size:9px;color:var(--faint);flex:0 0 28px;text-align:right}
+
+/* progress */
+.prog-track{height:4px;background:rgba(255,255,255,.08);border-radius:2px;margin:6px 12px 2px}
+.prog-fill{height:100%;border-radius:2px;background:var(--learning)}
+.prog-labels{display:flex;justify-content:space-between;padding:0 12px;font-family:var(--mono);font-size:8px;color:var(--faint)}
+
+/* section header */
+.sec-hd{padding:10px 12px 4px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:600}
+
+/* history rows */
+.hist-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);
+}
+.hist-left{font-size:11px;font-weight:500}
+.hist-sub{font-size:9px;color:var(--muted)}
+
+/* annotations */
+.annotations{margin-top:14px}
+.ann-title{font-size:11px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.ann-item{font-size:11px;color:var(--muted);line-height:1.6;padding-left:12px;position:relative}
+.ann-item::before{content:'→';position:absolute;left:0;color:var(--faint)}
+
+/* interaction notes */
+.interactions{margin-top:10px}
+.int-row{
+  display:flex;align-items:flex-start;gap:8px;padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--muted);
+}
+.int-tap{flex:0 0 20px;text-align:center;font-size:10px;color:var(--accent)}
+.int-label{font-size:11px;color:var(--muted)}
+
+/* legend */
+.legend{
+  display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;
+  padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<h1>PRECOG — Wireframes</h1>
+<p class="subtitle">UI/UX Course Deliverable · v1.0 · 2026-09-20 · 8 screens</p>
+
+<div class="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:var(--within)"></div>Within Range state</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--unusual)"></div>Unusual state</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--pronounced)"></div>Pronounced / High-Risk</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--learning)"></div>Learning / Not enough pattern</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div>Engaged state</div>
+</div>
+
+<div class="screens-grid">
+
+  <!-- ──────────────────────────────────────────
+       WF-01  HOME — Within Range
+  ────────────────────────────────────────── -->
+  <div class="wf">
+    <div class="wf-label">WF-01</div>
+    <div class="wf-name">Home — Within Range</div>
+    <div class="wf-desc">Default state. Baseline is established, current session falls inside tolerance band. No alert.</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>5G 🔋</span></div>
+      <div class="screen-body">
+        <div class="wf-row">
+          <div><div class="wf-title">PRECOG</div><div class="wf-sub">Your scroll baseline</div></div>
+          <div style="width:28px;height:28px;border-radius:14px;background:rgba(74,127,193,.3)"></div>
+        </div>
+        <div class="wf-card">
+          <div class="wf-tag tag-within">Within your range</div>
+          <div class="wf-card-title">Session looks normal</div>
+          <div class="wf-card-text">Pace and rhythm match your baseline for this time of day.</div>
+          <div class="band-box">
+            <div class="band-fill" style="left:18%;width:54%;background:rgba(92,158,138,.3)"></div>
+            <div class="band-dot" style="left:42%;background:var(--within)"></div>
+          </div>
+          <div class="band-labels"><span>slower</span><span>faster</span></div>
+        </div>
+        <div class="metrics">
+          <div class="metric-box"><div class="m-val">18m</div><div class="m-label">Duration</div></div>
+          <div class="metric-box"><div class="m-val">12%</div><div class="m-label">Passive</div></div>
+          <div class="metric-box"><div class="m-val">High</div><div class="m-label">Confidence</div></div>
+        </div>
+        <div class="sec-hd">Recent insights</div>
+        <div class="wf-card" style="margin-top:0">
+          <div class="wf-card-text" style="color:var(--muted)">2h ago · Instagram · pace 1.4× faster — active throughout</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab act"><div class="tab-ic">⌂</div><div class="tab-lbl">Home</div></div>
+          <div class="tab"><div class="tab-ic">◷</div><div class="tab-lbl">History</div></div>
+          <div class="tab"><div class="tab-ic">◈</div><div class="tab-lbl">Baseline</div></div>
+          <div class="tab"><div class="tab-ic">⚙</div><div class="tab-lbl">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <div class="ann-title">Key design decisions</div>
+      <div class="ann-item">Tolerance band is the primary visual — not a percentage or score</div>
+      <div class="ann-item">Marker position encodes session vs band, not a number</div>
+      <div class="ann-item">Confidence shown as word (High/Medium/Low) — no fake decimal</div>
+      <div class="ann-item">Card taps through to session detail (WF-04)</div>
+    </div>
+    <div class="interactions">
+      <div class="int-row"><div class="int-tap">↑</div><div class="int-label">State card tap → WF-04 Session Detail</div></div>
+      <div class="int-row"><div class="int-tap">↑</div><div class="int-label">Insight card tap → WF-07 Insight Detail</div></div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       WF-02  HOME — Unusual Alert
+  ────────────────────────────────────────── -->
+  <div class="wf">
+    <div class="wf-label">WF-02</div>
+    <div class="wf-name">Home — Unusual</div>
+    <div class="wf-desc">Session deviates from personal baseline. Amber colour, non-accusatory language, two-option response: acknowledge or take a break.</div>
+    <div class="phone">
+      <div class="status"><span>11:14</span><span>5G 🔋</span></div>
+      <div class="screen-body">
+        <div class="wf-row">
+          <div><div class="wf-title">PRECOG</div><div class="wf-sub">Your scroll baseline</div></div>
+          <div style="width:28px;height:28px;border-radius:14px;background:rgba(192,144,64,.3)"></div>
+        </div>
+        <div class="wf-card">
+          <div class="wf-tag tag-unusual">Unusual</div>
+          <div class="wf-card-title">Outside your normal range</div>
+          <div class="wf-card-text">Scroll pace and passive ratio are both higher than your typical Tuesday evening.</div>
+          <div class="band-box">
+            <div class="band-fill" style="left:18%;width:54%;background:rgba(192,144,64,.25)"></div>
+            <div class="band-dot" style="left:76%;background:var(--unusual)"></div>
+          </div>
+          <div class="band-labels"><span>slower</span><span>faster</span></div>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            <div style="flex:1;background:rgba(255,255,255,.04);border-radius:7px;padding:7px;text-align:center;font-size:10px">All good</div>
+            <div style="flex:1;background:rgba(192,144,64,.15);border-radius:7px;padding:7px;text-align:center;font-size:10px;color:var(--unusual)">Take a break</div>
+          </div>
+        </div>
+        <div class="sec-hd">What's different</div>
+        <div class="wf-card" style="margin-top:0">
+          <div class="wf-card-text">Pace 2.1× faster · passive ratio 67% ↑ · 4 burst episodes</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab act"><div class="tab-ic">⌂</div><div class="tab-lbl">Home</div></div>
+          <div class="tab"><div class="tab-ic">◷</div><div class="tab-lbl">History</div></div>
+          <div class="tab"><div class="tab-ic">◈</div><div class="tab-lbl">Baseline</div></div>
+          <div class="tab"><div class="tab-ic">⚙</div><div class="tab-lbl">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <div class="ann-title">Key design decisions</div>
+      <div class="ann-item">Marker outside the band communicates deviation visually, no words needed</div>
+      <div class="ann-item">"All good" option prevents learned-helplessness from false positives</div>
+      <div class="ann-item">Language: "outside your range" not "you're addicted"</div>
+      <div class="ann-item">Usability test gate: ≤2/5 participants feel accused (Acceptance criterion T4)</div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       WF-03  HOME — Engaged State
+  ────────────────────────────────────────── -->
+  <div class="wf">
+    <div class="wf-label">WF-03</div>
+    <div class="wf-name">Home — Engaged</div>
+    <div class="wf-desc">Duration is high but interaction quality signals deliberate use. PRECOG explains why it is NOT alerting — the explicit false-positive defence.</div>
+    <div class="phone">
+      <div class="status"><span>8:45</span><span>5G 🔋</span></div>
+      <div class="screen-body">
+        <div class="wf-row">
+          <div><div class="wf-title">PRECOG</div><div class="wf-sub">Your scroll baseline</div></div>
+          <div style="width:28px;height:28px;border-radius:14px;background:rgba(74,127,193,.3)"></div>
+        </div>
+        <div class="wf-card">
+          <div class="wf-tag tag-engaged">Engaged</div>
+          <div class="wf-card-title">Long session, intentional use</div>
+          <div class="wf-card-text">Duration is above your usual range, but you're actively interacting. PRECOG won't interrupt.</div>
+          <div class="band-box">
+            <div class="band-fill" style="left:18%;width:54%;background:rgba(74,127,193,.2)"></div>
+            <div class="band-dot" style="left:80%;background:var(--accent)"></div>
+          </div>
+          <div class="band-labels"><span>shorter</span><span>longer</span></div>
+        </div>
+        <div class="wf-card" style="margin-top:0">
+          <div class="wf-card-title" style="font-size:10px;margin-bottom:4px">Why no alert?</div>
+          <div class="wf-card-text">Duration: 68 min (baseline 22 min) — above normal.<br>Passive ratio: 9% (baseline 28%) — you're interacting deliberately.<br><br>High duration + low passive = Engaged. Not interrupted.</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab act"><div class="tab-ic">⌂</div><div class="tab-lbl">Home</div></div>
+          <div class="tab"><div class="tab-ic">◷</div><div class="tab-lbl">History</div></div>
+          <div class="tab"><div class="tab-ic">◈</div><div class="tab-lbl">Baseline</div></div>
+          <div class="tab"><div class="tab-ic">⚙</div><div class="tab-lbl">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <div class="ann-title">Key design decisions</div>
+      <div class="ann-item">ENGAGED actively explains non-alert — not silence, not absence</div>
+      <div class="ann-item">This is the primary false-positive defence vs. Screen Time / DW</div>
+      <div class="ann-item">Usability gate: ≥4/5 say "this looks fine" without prompting (T3)</div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       WF-04  SESSION DETAIL
+  ────────────────────────────────────────── -->
+  <div class="wf">
+    <div class="wf-label">WF-04</div>
+    <div class="wf-name">Session Detail</div>
+    <div class="wf-desc">Per-feature deviation breakdown. The evidence-required constraint: every score shows which features drove it and by how much (in σ units).</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>5G 🔋</span></div>
+      <div class="screen-body">
+        <div class="wf-row" style="padding-bottom:6px;border-bottom:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--accent)">← Back</span>
+          <span style="font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Session detail</span>
+          <span style="width:40px"></span>
+        </div>
+        <div style="padding:10px 12px 6px">
+          <div class="wf-tag tag-within">Within range</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:2px">Session looks normal</div>
+          <div style="font-size:10px;color:var(--muted)">Instagram · 9:18 PM · 18 min</div>
+        </div>
+        <div class="sec-hd">Feature deviations from your baseline</div>
+        <div class="dev-row"><div class="dev-name">inter-scroll ms</div><div class="dev-bar-w"><div class="dev-bar" style="width:20%;background:var(--within)"></div></div><div class="dev-sig">−0.3σ</div></div>
+        <div class="dev-row"><div class="dev-name">passive ratio</div><div class="dev-bar-w"><div class="dev-bar" style="width:36%;background:var(--within)"></div></div><div class="dev-sig">−0.8σ</div></div>
+        <div class="dev-row"><div class="dev-name">burst episodes</div><div class="dev-bar-w"><div class="dev-bar" style="width:12%;background:var(--muted)"></div></div><div class="dev-sig">+0.2σ</div></div>
+        <div class="dev-row"><div class="dev-name">scroll delta</div><div class="dev-bar-w"><div class="dev-bar" style="width:22%;background:var(--muted)"></div></div><div class="dev-sig">+0.4σ</div></div>
+        <div class="dev-row"><div class="dev-name">direction rev.</div><div class="dev-bar-w"><div class="dev-bar" style="width:8%;background:var(--muted)"></div></div><div class="dev-sig">−0.1σ</div></div>
+        <div class="wf-card" style="margin-top:8px">
+          <div class="wf-card-title" style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin-bottom:4px">Confidence</div>
+          <div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-bottom:4px"><div style="width:78%;height:100%;background:var(--accent);border-radius:2px"></div></div>
+          <div class="wf-card-text">78% · 840 enrolled gestures · 21 days</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="tab-ic">⌂</div><div class="tab-lbl">Home</div></div>
+          <div class="tab act"><div class="tab-ic">◷</div><div class="tab-lbl">History</div></div>
+          <div class="tab"><div class="tab-ic">◈</div><div class="tab-lbl">Baseline</div></div>
+          <div class="tab"><div class="tab-ic">⚙</div><div class="tab-lbl">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <div class="ann-title">Key design decisions</div>
+      <div class="ann-item">Deviation in σ units — consistent with GMM/PCA scoring in SPEC §5</div>
+      <div class="ann-item">Bars scaled so ±1σ = 50% bar width; >2σ clips to full — makes outliers salient</div>
+      <div class="ann-item">Confidence band always visible — Arjun persona needs to know it's wide</div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       WF-05  LEARNING MODE (Onboarding)
+  ────────────────────────────────────────── -->
+  <div class="wf">
+    <div class="wf-label">WF-05</div>
+    <div class="wf-name">Learning Mode</div>
+    <div class="wf-desc">First 80 gestures (~2 sessions). Progress bar is factual, not motivational. Explains what "learning" means: personal baseline, not population average.</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>5G 🔋</span></div>
+      <div class="screen-body">
+        <div class="wf-row">
+          <div><div class="wf-title">PRECOG</div><div class="wf-sub">Learning your baseline</div></div>
+          <div style="width:28px;height:28px;border-radius:14px;background:rgba(122,143,173,.3)"></div>
+        </div>
+        <div class="wf-card">
+          <div class="wf-tag tag-learning">Learning mode</div>
+          <div class="wf-card-title">Building your baseline</div>
+          <div class="wf-card-text">PRECOG needs ~80 more gestures — about 2 scrolling sessions — before making comparisons.</div>
+          <div class="prog-track" style="margin:10px 0 2px">
+            <div class="prog-fill" style="width:34%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--faint)">
+            <span>27 gestures</span><span>80 needed</span>
+          </div>
+        </div>
+        <div class="wf-card" style="margin-top:0">
+          <div class="wf-card-text">Not a population average — PRECOG learns <em>your</em> rhythm, including late nights and weekends.</div>
+        </div>
+        <div class="metrics">
+          <div class="metric-box"><div class="m-val">27</div><div class="m-label">Gestures</div></div>
+          <div class="metric-box"><div class="m-val">1</div><div class="m-label">Sessions</div></div>
+          <div class="metric-box"><div class="m-val">—</div><div class="m-label">Confidence</div></div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab act"><div class="tab-ic">⌂</div><div class="tab-lbl">Home</div></div>
+          <div class="tab"><div class="tab-ic">◷</div><div class="tab-lbl">History</div></div>
+          <div class="tab"><div class="tab-ic">◈</div><div class="tab-lbl">Baseline</div></div>
+          <div class="tab"><div class="tab-ic">⚙</div><div class="tab-lbl">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <div class="ann-title">Key design decisions</div>
+      <div class="ann-item">Progress shows gesture count, not sessions — gestures are the true unit (EXP-002)</div>
+      <div class="ann-item">No estimated time-to-complete — varies too much per user (0–66% spread, EXP-001)</div>
+      <div class="ann-item">Usability gate: ≥4/5 understand tolerance band without prompting (T1)</div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       WF-06  NOT ENOUGH PATTERN
+  ────────────────────────────────────────── -->
+  <div class="wf">
+    <div class="wf-label">WF-06</div>
+    <div class="wf-name">Not Enough Pattern</div>
+    <div class="wf-desc">Arjun persona: enrolled ≥80 gestures but behavioural spread is too wide to make a confident call. Honest uncertainty, not failure. Forward-looking text.</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>5G 🔋</span></div>
+      <div class="screen-body">
+        <div class="wf-row">
+          <div><div class="wf-title">PRECOG</div><div class="wf-sub">Your scroll baseline</div></div>
+          <div style="width:28px;height:28px;border-radius:14px;background:rgba(77,86,107,.4)"></div>
+        </div>
+        <div style="margin:8px 12px;background:rgba(122,143,173,.08);border:1px dashed rgba(122,143,173,.25);border-radius:10px;padding:16px;text-align:center">
+          <div style="font-size:22px;margin-bottom:8px">⋯</div>
+          <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px">Not enough pattern yet</div>
+          <div style="font-size:10px;color:var(--faint);line-height:1.5">Your scrolling varies too much to make a confident comparison right now.</div>
+        </div>
+        <div class="wf-card" style="margin-top:0">
+          <div class="wf-card-title" style="font-size:10px;margin-bottom:4px">Your variability</div>
+          <div class="wf-card-text">Spread: ±2.8σ (population: ±1.1σ)<br>~12 more sessions for a tight band<br>Strong deviations will still be flagged</div>
+        </div>
+        <div class="wf-card" style="margin-top:0">
+          <div class="wf-card-text"><strong style="color:var(--ink)">Honesty, not a bug.</strong> An app that guesses when uncertain adds noise. PRECOG declines to guess.</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab act"><div class="tab-ic">⌂</div><div class="tab-lbl">Home</div></div>
+          <div class="tab"><div class="tab-ic">◷</div><div class="tab-lbl">History</div></div>
+          <div class="tab"><div class="tab-ic">◈</div><div class="tab-lbl">Baseline</div></div>
+          <div class="tab"><div class="tab-ic">⚙</div><div class="tab-lbl">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <div class="ann-title">Key design decisions</div>
+      <div class="ann-item">Distinguishes "not enrolled yet" (WF-05) from "enrolled but wide" (this screen)</div>
+      <div class="ann-item">Shows user's own spread vs. population — personalises the uncertainty</div>
+      <div class="ann-item">Usability gate: ≥3/5 find it reassuring or neutral, not frustrating (T5)</div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       WF-07  INSIGHT DETAIL
+  ────────────────────────────────────────── -->
+  <div class="wf">
+    <div class="wf-label">WF-07</div>
+    <div class="wf-name">Insight Detail</div>
+    <div class="wf-desc">Full evidence view for a single detected deviation. Feature bars + confidence + plain-language summary. The evidence-required design constraint in full.</div>
+    <div class="phone">
+      <div class="status"><span>11:32</span><span>5G 🔋</span></div>
+      <div class="screen-body">
+        <div class="wf-row" style="padding-bottom:6px;border-bottom:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--accent)">← Back</span>
+          <span style="font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">Insight</span>
+          <span style="width:40px"></span>
+        </div>
+        <div style="padding:10px 12px 4px">
+          <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:4px">Tuesday 11:14 PM · Instagram · 38 min</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Scroll pace 2.1× faster than Tuesday evening baseline</div>
+          <div style="font-size:10px;color:var(--muted);line-height:1.4">You scrolled quickly with few pauses for the full session.</div>
+        </div>
+        <div class="sec-hd">Evidence</div>
+        <div class="dev-row"><div class="dev-name">inter-scroll ms</div><div class="dev-bar-w"><div class="dev-bar" style="width:85%;background:var(--pronounced)"></div></div><div class="dev-sig" style="color:var(--pronounced)">−2.1σ</div></div>
+        <div class="dev-row"><div class="dev-name">passive ratio</div><div class="dev-bar-w"><div class="dev-bar" style="width:70%;background:var(--unusual)"></div></div><div class="dev-sig" style="color:var(--unusual)">+1.7σ</div></div>
+        <div class="dev-row"><div class="dev-name">burst episodes</div><div class="dev-bar-w"><div class="dev-bar" style="width:55%;background:var(--unusual)"></div></div><div class="dev-sig" style="color:var(--unusual)">+1.4σ</div></div>
+        <div class="dev-row"><div class="dev-name">session duration</div><div class="dev-bar-w"><div class="dev-bar" style="width:42%;background:var(--muted)"></div></div><div class="dev-sig">+1.1σ</div></div>
+        <div class="wf-card" style="margin-top:8px">
+          <div class="wf-card-title" style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin-bottom:4px">Confidence</div>
+          <div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-bottom:4px"><div style="width:82%;height:100%;background:var(--accent);border-radius:2px"></div></div>
+          <div class="wf-card-text">82% · 840 enrolled gestures · high confidence comparison</div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <div class="ann-title">Key design decisions</div>
+      <div class="ann-item">Bar length = |deviation| in σ, colour encodes direction × magnitude</div>
+      <div class="ann-item">Most-deviant feature at top — scan order matches salience</div>
+      <div class="ann-item">Confidence section always at bottom — grounds credibility of the whole card</div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       WF-08  HISTORY
+  ────────────────────────────────────────── -->
+  <div class="wf">
+    <div class="wf-label">WF-08</div>
+    <div class="wf-name">History</div>
+    <div class="wf-desc">Chronological log of sessions with state chips. Taps open session detail. Colour-coded chips provide at-a-glance summary of behavioural week.</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>5G 🔋</span></div>
+      <div class="screen-body">
+        <div class="wf-row" style="padding-bottom:6px;border-bottom:1px solid var(--border)">
+          <span style="width:40px"></span>
+          <span style="font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">History</span>
+          <span style="width:40px"></span>
+        </div>
+        <div class="sec-hd">Today</div>
+        <div class="hist-row">
+          <div><div class="hist-left">Instagram</div><div class="hist-sub">11:14 PM · 38 min · pace 2.1× faster</div></div>
+          <div class="wf-tag tag-unusual" style="font-size:8px">Unusual</div>
+        </div>
+        <div class="hist-row">
+          <div><div class="hist-left">YouTube</div><div class="hist-sub">8:30 PM · 68 min · intentional use</div></div>
+          <div class="wf-tag tag-engaged" style="font-size:8px">Engaged</div>
+        </div>
+        <div class="hist-row">
+          <div><div class="hist-left">Instagram</div><div class="hist-sub">6:15 PM · 12 min</div></div>
+          <div class="wf-tag tag-within" style="font-size:8px">Normal</div>
+        </div>
+        <div class="sec-hd">Yesterday</div>
+        <div class="hist-row">
+          <div><div class="hist-left">Reddit</div><div class="hist-sub">10:40 PM · 24 min</div></div>
+          <div class="wf-tag tag-within" style="font-size:8px">Normal</div>
+        </div>
+        <div class="hist-row">
+          <div><div class="hist-left">Instagram</div><div class="hist-sub">7:00 PM · 18 min</div></div>
+          <div class="wf-tag tag-within" style="font-size:8px">Normal</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="tab-ic">⌂</div><div class="tab-lbl">Home</div></div>
+          <div class="tab act"><div class="tab-ic">◷</div><div class="tab-lbl">History</div></div>
+          <div class="tab"><div class="tab-ic">◈</div><div class="tab-lbl">Baseline</div></div>
+          <div class="tab"><div class="tab-ic">⚙</div><div class="tab-lbl">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <div class="ann-title">Key design decisions</div>
+      <div class="ann-item">State chips create a coloured timeline — one week of chips tells a story</div>
+      <div class="ann-item">Grouped by day, not by app — temporal structure is what matters</div>
+      <div class="ann-item">Tap → WF-04 Session Detail</div>
+    </div>
+  </div>
+
+</div><!-- /screens-grid -->
+
+</body>
+</html>
